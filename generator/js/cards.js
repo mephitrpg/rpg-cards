@@ -322,17 +322,15 @@ function card_element_rawhtml(params, card_data, options) {
 
 /**
  * @summary A subtitle.
- * @description Adds a subtitle to the card. The second parameter is optional and will be right-aligned.
+ * @description Adds a subtitle to the card. The second parameter is optional and will be right-aligned. Supports multiple subtitles.
  * @example subtitle | text | right-aligned-text
  * @category Basic
  */
 function card_element_subtitle(params, card_data, options) {
-  var subtitle = params[0] || "";
-  var result = '<div class="card-element card-subtitle">';
-  if (params[1]) {
-    result += '<div style="float:right">' + params[1] + "</div>";
+  let result = '<div class="card-element card-subtitle">';
+  if (params?.length) {
+    result += params.map(text => `<div>${text.trim()}</div>`).join('');
   }
-  result += "<div>" + subtitle + "</div>";
   result += "</div>";
   return result;
 }

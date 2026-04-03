@@ -219,6 +219,8 @@
     line-height: 1.3;
 }
 .card-subtitle {
+    display: flex;
+    justify-content: space-between;
     margin-bottom: 0.0em;
     line-height: 18px;
     font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
