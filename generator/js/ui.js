@@ -101,7 +101,7 @@ function ui_clear_all(enableAsking) {
     if (!card_data.length) {
         return true;
     }
-    const proceed = enableAsking && document.getElementById('ask-before-delete').checked ? confirm('Delete all cards?') : true;
+    const proceed = enableAsking && document.getElementById('ask-before-delete').checked ? confirm('This will delete all cards and set the default file name.\n\nContiue?') : true;
     if (proceed) {
         card_data = [];
         ui_update_card_list();
