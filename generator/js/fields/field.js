@@ -68,6 +68,16 @@ class Field {
     }
 
     /**
+     * Check if a value is null or undefined.
+     * @private
+     * @param {*} value - The value to check.
+     * @returns {boolean} True if value is null or undefined, false otherwise.
+     */
+    #isNil(value) {
+        return value == null;
+    }
+
+    /**
      * @typedef {Object} FieldOptions
      * @property {string|[Function,string]} property
      *      Path such as `"object.key"` or `[() => object, "key"]`.
@@ -95,6 +105,10 @@ class Field {
      *      Value parser/transformer. Defaults to:
      *      - Boolean for checkboxes
      *      - String for others
+     *
+     * @property {boolean} [autoDebounce]
+     *      Debounce configured `input`, `keyup`, and `scroll` callbacks. Defaults
+     *      to true; internal data synchronization remains immediate.
      */
 
     /**
@@ -103,28 +117,42 @@ class Field {
      * @throws {Error}
      */
     constructor(options) {
-        const { property, defaultProperty, name, id, init, events, eventListeners, valueGetter } = options;
+        const {
+            property,
+            defaultProperty,
+            name,
+            id,
+            init,
+            events,
+            eventListeners,
+            valueGetter,
+            valueSetter,
+        } = options;
+
+        let {
+            autoDebounce,
+            initWithDefaultValue
+        } = options;
 
         if (!id && !name) throw new Error(`Field's id or name are required.`);
         if (id && name) throw new Error(`Field's name must be omitted when an id is provided.`);
         if (!property) throw new Error(`Field's property is required.`);
 
-        this.options = options;
+        autoDebounce ??= true;
+        initWithDefaultValue ??= true;
+
+        this.options = Object.assign({}, options, {
+            autoDebounce,
+            initWithDefaultValue
+        });
         this.events = events;
 
         // Property linking
         const propertyData = this.#getPropertyData(property);
         this.key = propertyData.key;
         this.data = propertyData.data;
+        this.dataName = propertyData.dataName;
 
-        // Default value resolution
-        if (defaultProperty) {
-            const dp = this.#getPropertyData(defaultProperty);
-            this.defaultValue = dp.value;
-        } else {
-            const dp = this.#getPropertyData([`default_${propertyData.dataName}`, propertyData.key]);
-            this.defaultValue = dp.value;
-        }
 
         // DOM element lookup
         let el = null;
@@ -157,10 +185,17 @@ class Field {
         else if (type === 'checkbox') this.valueGetter = Boolean;
         else this.valueGetter = String;
 
+        // Value setter for bidirectional conversion
+        if (valueSetter) this.valueSetter = valueSetter;
+
         // Initial value
         let _value = this.getData();
-        if (_value === undefined || _value === null) _value = this.defaultValue;
-        this.update(_value);
+        if (initWithDefaultValue && this.#isNil(_value)) _value = this.getDefaultValue();
+        // Initialization must not write to storage: fields can be created before
+        // all state (for example, the selected card) is available.  Keep the
+        // previous in-memory initialization behavior without persisting it.
+        this.setValue(_value);
+        this.setData(_value);
 
         // Event listeners
         const elements = isList ? el : [el];
@@ -175,12 +210,33 @@ class Field {
                 this.setData(this.getValue());
                 this.storeData();
             });
+            // Events that should be debounced with their timing
+            const debouncedEvents = {
+                'input': 250,    // 250ms for complex HTML rendering
+                'keyup': 250,    // 250ms for complex HTML rendering
+                'scroll': 16     // 16ms for 60fps scrolling
+            };
+
             events?.forEach(args => {
                 const [ name, callback, options ] = args || [];
+                
                 if (typeof callback === 'function') {
-                    element.addEventListener(...args)
+                    let finalCallback = callback;
+                    if (debouncedEvents[name] && autoDebounce) {
+                        finalCallback = debounce(callback, debouncedEvents[name]);
+                    }
+                    element.addEventListener(name, finalCallback, options);
                 } else if (typeof callback ==='string') {
-                    element.addEventListener(name, eventListeners[callback], options);
+                    let eventCallback = eventListeners?.[callback];
+                    if (typeof eventCallback !== 'function') {
+                        throw new Error(
+                            `Field "${Field.identifier(this)}" event "${name}" references missing handler "${callback}".`
+                        );
+                    }
+                    if (debouncedEvents[name] && autoDebounce) {
+                        eventCallback = debounce(eventCallback, debouncedEvents[name]);
+                    }
+                    element.addEventListener(name, eventCallback, options);
                 }
             });
         });
@@ -231,11 +287,11 @@ class Field {
     }
 
     /**
-     * Read the current DOM value and parse it using valueGetter.
+     * Read the current DOM value and parse it using valueGetter/valueSetter.
      * @returns {*}
      */
     getValue() {
-        const { el, valueGetter } = this;
+        const { el, valueGetter, valueSetter } = this;
         if (!el) return undefined;
 
         let result;
@@ -265,6 +321,11 @@ class Field {
                 result = valueGetter(el.value);
         }
 
+        // Apply valueSetter for bidirectional conversion if present
+        if (valueSetter) {
+            result = valueSetter(result);
+        }
+
         return result;
     }
 
@@ -292,18 +353,73 @@ class Field {
                 break;
 
             case 'select-multiple':
+                const selectedValues = Array.isArray(v) ? v : [];
                 for (const opt of el.options) {
-                    opt.selected = v.includes(valueGetter(opt.value));
+                    opt.selected = selectedValues.includes(valueGetter(opt.value));
                 }
                 break;
 
             default:
-                el.value = v ?? '';
+                // Use valueGetter to convert the value for DOM display
+                try {
+                    const displayValue = valueGetter ? valueGetter(v) : (v ?? '');
+                    // Robust null/undefined check
+                    if (this.#isNil(displayValue) || (typeof displayValue === 'string' && displayValue.toLowerCase() === 'null')) {
+                        el.value = '';
+                    } else {
+                        el.value = displayValue;
+                    }
+                } catch (e) {
+                    // Fallback for any conversion errors
+                    el.value = '';
+                }
         }
     }
 
+    // Default value resolution
+    getDefaultValue() {
+        const defaultProperty = this.options.defaultProperty;
+        let dp;
+        if (defaultProperty) {
+            dp = this.#getPropertyData(defaultProperty);
+        } else {
+            if (typeof this.dataName !== 'string') {
+                throw new Error(
+                    `Field "${Field.identifier(this)}" requires defaultProperty when its property uses a function.`
+                );
+            }
+            dp = this.#getPropertyData([`default_${this.dataName}`, this.key]);
+        }
+        return dp.value;
+    }
+
     /**
-     * Programmatically change the field value and fire input/change events.
+     * Returns the empty value for the field based on its type.
+     * @returns {*} The empty value: false for checkboxes, [] for lists, '' otherwise.
+     */
+    getEmptyValue() {
+        return this.type === 'checkbox' ? false : (this.isList ? [] : '');
+    }
+
+    /**
+     * Returns the first non-null value among the field's current value, default value, or empty value.
+     * @returns {*} The fallback value for the field.
+     */
+    getFallbackValue() {
+        return this.getValue() ?? this.getDefaultValue() ?? this.getEmptyValue();        
+    }
+
+    /**
+     * Returns the first non-null value among the field's data value, default value, or empty value.
+     * This checks the underlying data object, not the DOM value.
+     * @returns {*} The fallback value for the field.
+     */
+    getFallbackData() {
+        return this.getData() ?? this.getDefaultValue() ?? this.getEmptyValue();        
+    }
+
+    /**
+     * Programmatically change the field value and fire input and change events.
      *
      * @param {*} v
      * @param {{updateData?: boolean}} [options]
@@ -314,8 +430,7 @@ class Field {
         if (!updateData) this.#preventInternalEvents = true;
 
         this.setValue(v);
-        this.el.dispatchEvent(new Event('input'));
-        this.el.dispatchEvent(new Event('change'));
+        this.trigger();
 
         if (!updateData) this.#preventInternalEvents = false;
     }
@@ -324,17 +439,38 @@ class Field {
      * Reset field to its default value (fires events).
      */
     reset() {
-        this.changeValue(this.defaultValue);
+        this.changeValue(this.options.initWithDefaultValue ? this.getDefaultValue() : this.getEmptyValue());
     }
 
     /**
-     * Set DOM value, update data, and persist.
+     * Set DOM value, update data, and persist, without firing events.
      * @param {*} v
      */
     update(v) {
         this.setValue(v);
         this.setData(v);
         this.storeData();
+    }
+
+    /**
+     * Dispatch event(s) on the field element.
+     * @param {string|string[]} [eventName] - Event name(s) to dispatch. Defaults to ['input', 'change'] if not provided.
+     * @returns {void}
+     */
+    trigger(eventName) {
+        let el = this.el;
+        if (this.isList) {
+            const firstEl = el[0];
+            if (firstEl?.type === 'radio') el = firstEl;
+        }
+        if (Array.isArray(eventName)) {
+            eventName.forEach(e => el.dispatchEvent(new Event(e)));
+        } else if (eventName && typeof eventName === 'string') {
+            el.dispatchEvent(new Event(eventName));
+        } else {
+            el.dispatchEvent(new Event('input'));
+            el.dispatchEvent(new Event('change'));
+        }
     }
 }
 

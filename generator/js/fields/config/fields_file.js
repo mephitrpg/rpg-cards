@@ -13,7 +13,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('file', () => [
         valueGetter: Boolean,
         events: [
             ['change', () => {
-                if (app_settings.browser_asks_where_save) getField('open-save-dialog').changeValue(true);
+                if (app_settings.browser_asks_where_save) getField('open-save-dialog').update(true);
             }]
         ]
     },
@@ -23,7 +23,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('file', () => [
         valueGetter: Boolean,
         events: [
             ['change', () => {
-                if (!app_settings.save_file_dialog) getField('browser-asks-where-save').changeValue(false);
+                if (!app_settings.save_file_dialog) getField('browser-asks-where-save').update(false);
             }]
         ]
     }

@@ -246,12 +246,38 @@ function card_element_italic(params, card_data, options) {
 
 /**
  * @summary Start a new table finish with table_end
- * @description Starts a new table. Must be closed with `table_end`.
+ * @description Starts a new table. Must be closed with `table_end`. Accepts a 'layout' parameter ('fixed', 'auto', 'bordfix'). Also accepts all the Table attrubutes.
  * @example table_start
  * @category Table
  */
 function card_element_table_start(params, card_data, options) {
-  return '<!-- table_start --><table class="card-stats"><tbody>';
+  let result = '<!-- table_start --><table';
+  let className = ['card-stats'];
+  let style = [];
+  for (let i = 0; i < params.length; i += 2) {
+    const key = params[i];
+    const value = params[i+1];
+    if (key === 'layout') {
+      if (value === 'bordfix') {
+        result += ' border="1"';
+        style.push('table-layout: fixed; hyphens: auto');
+      } else if (value === 'fixed') {
+        style.push('table-layout: fixed');
+      } else if (value === 'auto') {
+        style.push('table-layout: auto');
+      }
+    } else if (key === 'style') {
+      style.push(value);
+    } else if (key === 'class') {
+      className.push(value);
+    } else {
+      result += ' ' + key + '="' + value + '"';
+    }
+  }
+  result += ' class="' + className.join(' ') + '"';
+  if (style.length) result += ' style="' + style.join('; ') + '"';
+  result += '><tbody>';
+  return result;
 }
 
 /**
@@ -1029,8 +1055,10 @@ function card_generate_crop_marks(card_data, options, params = {}) {
     isPreview
   } = params;
 
-  const bleed_width_half = `calc(${options.back_bleed_width} / 2)`;
-  const bleed_height_half = `calc(${options.back_bleed_height} / 2)`;
+  const bleedWidth = css_length(options.back_bleed_width);
+  const bleedHeight = css_length(options.back_bleed_height);
+  const bleed_width_half = `calc(${bleedWidth} / 2)`;
+  const bleed_height_half = `calc(${bleedHeight} / 2)`;
   
   if (!options.crop_marks || isPreview) return '';
 
@@ -1057,7 +1085,8 @@ function card_generate_color_back_style(color, data = {}, options = {}) {
 function card_generate_back_icon_style(color, data = {}, options = {}) {
   const rotation = card_data_icon_back_rotation(data, options);
   let bgStyle = '';
-  if (data.icon_back_container !== 'none') {
+  const container = card_data_icon_back_container(data, options);
+  if (container && container !== 'none') {
     bgStyle = `background-repeat: no-repeat; transform: rotate(${rotation}deg);`;
   }
   return `style="${bgStyle}"`;
@@ -1065,7 +1094,8 @@ function card_generate_back_icon_style(color, data = {}, options = {}) {
 
 function card_generate_back_icon_container_style(color, data = {}, options = {}) {
   let bgStyle = '';
-  if (data.icon_back_container !== 'none') {
+  const container = card_data_icon_back_container(data, options);
+  if (container && container !== 'none') {
     bgStyle = `border-color:${color}; background-color:${color}; display: flex; justify-content: center; align-items: center;`;
   }
   return `style="${bgStyle}"`;
@@ -1094,8 +1124,17 @@ function add_size_to_style(style, width, height) {
   return add_to_style(style, { width, height });
 }
 
-function add_bleed_to_style(style) {
-  return add_to_style(style, { padding: `calc(${card_options.back_bleed_height}/2) calc(${card_options.back_bleed_width}/2)` });
+function css_length(value) {
+  const length = String(value ?? '').trim();
+  return /^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(length)
+    ? `${length}mm`
+    : length;
+}
+
+function add_bleed_to_style(style, bleedWidth, bleedHeight) {
+  return add_to_style(style, {
+    padding: `calc(${bleedHeight}/2) calc(${bleedWidth}/2)`
+  });
 }
 
 
@@ -1106,14 +1145,16 @@ function card_generate_front(data, options, { isPreview }) {
   var width = options.card_width;
   var height = options.card_height;
 
-  var back_bleed_width = options.back_bleed_width;
-  var back_bleed_height = options.back_bleed_height;
+  var back_bleed_width = css_length(options.back_bleed_width);
+  var back_bleed_height = css_length(options.back_bleed_height);
 
   var card_width = "calc(" + width + " + " + back_bleed_width + ")";
   var card_height = "calc(" + height + " + " + back_bleed_height + ")";
 
   var card_style = isPreview ? add_size_to_style(style_color, width, height) : add_size_to_style(style_color, card_width, card_height);
-  var card_content_style = isPreview ? '' : add_bleed_to_style();
+  var card_content_style = isPreview
+    ? ''
+    : add_bleed_to_style('', back_bleed_width, back_bleed_height);
 
   const cardClasses = ['card'];
   if (options.rounded_corners) cardClasses.push('rounded-corners');
@@ -1181,8 +1222,8 @@ function card_generate_back(data, options, { isPreview }) {
   var width = options.card_width;
   var height = options.card_height;
 
-  var back_bleed_width = options.back_bleed_width;
-  var back_bleed_height = options.back_bleed_height;
+  var back_bleed_width = css_length(options.back_bleed_width);
+  var back_bleed_height = css_length(options.back_bleed_height);
 
   var card_width = "calc(" + width + " + " + back_bleed_width + ")";
   var card_height = "calc(" + height + " + " + back_bleed_height + ")";
@@ -1199,7 +1240,7 @@ function card_generate_back(data, options, { isPreview }) {
   var iconContainerSize = Math.min(innerWidth, innerHeight) / 2;
   $tmpCardContainer.remove();
 
-  var url = data.background_image;
+  var url = card_data_back_image(data, options);
   var card_background_style = "";
   if (url) {
     card_background_style = `style="background-image: url(&quot;${url}&quot;); background-size: contain; background-position: center; background-repeat: no-repeat;"`;
@@ -1212,7 +1253,11 @@ function card_generate_back(data, options, { isPreview }) {
   var icon_container_style = add_size_to_style(card_generate_back_icon_container_style(color, data, options), `${iconContainerSize}px`, `${iconContainerSize}px`);
   var icon_style = card_generate_back_icon_style(color, data, options);
 
-  var card_content_style = add_bleed_to_style();
+  var card_content_style = add_bleed_to_style(
+    '',
+    back_bleed_width,
+    back_bleed_height
+  );
 
   return card_generate_back_html({
     renderInner: !url,
@@ -1234,8 +1279,8 @@ function card_generate_empty(count, options, is_back) {
   var card_height = options.card_height;
 
     var style_color = card_generate_color_back_style("white");
-    var back_bleed_width = options.back_bleed_width;
-    var back_bleed_height = options.back_bleed_height;
+    var back_bleed_width = css_length(options.back_bleed_width);
+    var back_bleed_height = css_length(options.back_bleed_height);
     card_width = "calc(" + card_width + " + " + back_bleed_width + ")";
     card_height = "calc(" + card_height + " + " + back_bleed_height + ")";
 
@@ -1353,8 +1398,8 @@ function card_pages_wrap(pages, options) {
     zoomStyle += '"';
     zoomStyle = add_size_to_style(
       zoomStyle,
-      `calc((${options.card_width} + ${options.back_bleed_width}) * ${options.page_columns})`,
-      `calc((${options.card_height} + ${options.back_bleed_height}) * ${options.page_rows})`
+      `calc((${options.card_width} + ${css_length(options.back_bleed_width)}) * ${options.page_columns})`,
+      `calc((${options.card_height} + ${css_length(options.back_bleed_height)}) * ${options.page_rows})`
     );
 
     result +=

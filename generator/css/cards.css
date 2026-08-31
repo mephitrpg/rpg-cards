@@ -350,6 +350,11 @@
     padding: 0;
 }
 
+.card-stats-bordfix {
+    border: 1px solid;
+    table-layout: fixed;
+}
+
 .card-bullet-line {
     color: black;
     padding-left: 16px;

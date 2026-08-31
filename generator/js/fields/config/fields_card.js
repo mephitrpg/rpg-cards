@@ -4,6 +4,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
         id: 'card-title',
         property: [ui_selected_card, 'title'],
         defaultProperty: [default_card_data, 'title'],
+        initWithDefaultValue: false,
         eventListeners: {
             changeHandler: function (event) {
                 ui_render_selected_card();
@@ -26,7 +27,8 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'card-count',
         property: [ui_selected_card, 'count'],
-        defaultProperty: [default_card_data, 'card_count'],
+        defaultProperty: 'card_options.card_count',
+        initWithDefaultValue: false,
         eventListeners: {
             changeHandler: function () {
                 var card = ui_selected_card();
@@ -46,8 +48,9 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'card-color-front',
         property: [ui_selected_card, 'color_front'],
-        defaultProperty: [default_card_data, 'color_front'],
-        init: ui_fields_colorfield_init,
+        defaultProperty: 'card_options.default_color_front',
+        initWithDefaultValue: false,
+        init: ui_field_type_color_init,
         events: [
             ['input', ui_render_selected_card],
             ['change', ui_render_selected_card]
@@ -57,6 +60,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'header-show',
         property: [ui_selected_card, 'header_show'],
+        initWithDefaultValue: false,
         events: [
             ['input', ui_render_selected_card],
             ['change', ui_render_selected_card]
@@ -66,7 +70,9 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'card-title-display',
         property: [ui_selected_card, 'title_display'],
-        defaultProperty: [default_card_data, 'title'],
+        // defaultProperty: 'card_options.title', // none!
+        initWithDefaultValue: false,
+        init: ui_field_type_search_init,
         events: [
             ['input', ui_render_selected_card],
             ['change', ui_render_selected_card]
@@ -76,17 +82,19 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'card-title-size',
         property: [ui_selected_card, 'title_size'],
-        defaultProperty: [default_card_data, 'default_title_size'],
+        defaultProperty: 'card_options.default_title_size',
+        initWithDefaultValue: false,
         events: [
             ['change', ui_render_selected_card]
         ]
     },
     // Title color
     {
-        id: 'title-color',
+        id: 'card-title-color',
         property: [ui_selected_card, 'title_color'],
-        defaultProperty: [default_card_data, 'default_title_color'],
-        init: ui_fields_colorfield_init,
+        defaultProperty: 'card_options.default_title_color',
+        initWithDefaultValue: false,
+        init: ui_field_type_color_init,
         events: [
             ['input', ui_render_selected_card],
             ['change', ui_render_selected_card]
@@ -96,7 +104,8 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'card-type',
         property: [ui_selected_card, 'card_type'],
-        defaultProperty: [default_card_data, 'card_type'],
+        defaultProperty: 'card_options.card_type',
+        initWithDefaultValue: false,
         events: [
             ['input', ui_render_selected_card],
             ['change', ui_render_selected_card]
@@ -107,8 +116,9 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'card-icon-front-color',
         property: [ui_selected_card, 'icon_front_color'],
-        defaultProperty: [default_card_data, 'icon_front_color'],
-        init: ui_fields_colorfield_init,
+        // defaultProperty: 'card_options.icon_front_color', // none!
+        initWithDefaultValue: false,
+        init: ui_field_type_color_init,
         events: [
             ['input', ui_render_selected_card],
             ['change', ui_render_selected_card]
@@ -119,8 +129,9 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'card-color-back',
         property: [ui_selected_card, 'color_back'],
-        defaultProperty: [default_card_data, 'color_back'],
-        init: ui_fields_colorfield_init,
+        defaultProperty: 'card_options.default_color_back',
+        initWithDefaultValue: false,
+        init: ui_field_type_color_init,
         events: [
             ['input', ui_render_selected_card],
             ['change', ui_render_selected_card]
@@ -139,12 +150,110 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'vertical-alignment-reference',
         property: [ui_selected_card, 'vertical_alignment_reference'],
-        defaultProperty: [default_card_data, 'vertical_alignment_reference'],
+        defaultProperty: 'card_options.vertical_alignment_reference',
+        initWithDefaultValue: false,
         events: [
             ['change', ui_render_selected_card]
         ]
     },
-    
+    // Card font size
+    {
+        id: 'card-font-size',
+        property: [ui_selected_card, 'card_font_size'],
+        defaultProperty: 'card_options.default_card_font_size',
+        initWithDefaultValue: false,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    // Card icons
+    {
+        id: 'card-icon-front',
+        property: [ui_selected_card, 'icon_front'],
+        defaultProperty: 'card_options.default_icon_front',
+        initWithDefaultValue: false,
+        init: ui_field_type_icon_init,
+        autoDebounce: false,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'card-icon-back',
+        property: [ui_selected_card, 'icon_back'],
+        defaultProperty: 'card_options.default_icon_back',
+        initWithDefaultValue: false,
+        init: ui_field_type_icon_init,
+        autoDebounce: false,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'card-icon-back-container',
+        property: [ui_selected_card, 'icon_back_container'],
+        defaultProperty: 'card_options.default_icon_back_container',
+        initWithDefaultValue: false,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'card-icon-back-rotation',
+        property: [ui_selected_card, 'icon_back_rotation'],
+        defaultProperty: 'card_options.default_icon_back_rotation',
+        initWithDefaultValue: false,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    // Card background
+    {
+        id: 'card-background',
+        property: [ui_selected_card, 'background_image'],
+        defaultProperty: 'card_options.default_background_image',
+        initWithDefaultValue: false,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    // Card contents
+    {
+        id: 'card-contents',
+        property: [ui_selected_card, 'contents'],
+        defaultProperty: 'card_options.contents',
+        initWithDefaultValue: false,
+        valueGetter: (value) => {
+            if (value == null || value === undefined) return "";
+            return Array.isArray(value) ? value.join("\n") : (value || "");
+        },
+        valueSetter: (value) => typeof value === 'string' ? value.split("\n") : value,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    // Card tags
+    {
+        id: 'card-tags',
+        property: [ui_selected_card, 'tags'],
+        defaultProperty: [default_card_data, 'tags'],
+        initWithDefaultValue: false,
+        valueGetter: (value) => {
+            if (value == null || value === undefined) return "";
+            return Array.isArray(value) ? value.join(", ") : (value || "");
+        },
+        valueSetter: (value) => {
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                return trimmed.length === 0 ? [] : trimmed.split(',').map(t => t.trim());
+            }
+            return value;
+        },
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+
 
     // $("#card-color-front").change(function() {
     //     var input = $(this);
@@ -153,7 +262,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     //     ui_update_color_selector(color, input, "#card-color-front-selector");
     //     ui_set_card_color_front(color);
     // });
-	// $("#card-color-back").change(function() {
+    // $("#card-color-back").change(function() {
     //     var input = $(this);
     //     var color = input.val();
 

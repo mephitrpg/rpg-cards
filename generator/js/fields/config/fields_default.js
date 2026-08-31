@@ -2,7 +2,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('default', () => [
     {
         id: 'default-color-front',
         property: 'card_options.default_color_front',
-        init: ui_fields_colorfield_init,
+        init: ui_field_type_color_init,
         events: [
             ['change', ui_render_selected_card]
         ]
@@ -10,7 +10,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('default', () => [
     {
         id: 'default-color-back',
         property: 'card_options.default_color_back',
-        init: ui_fields_colorfield_init,
+        init: ui_field_type_color_init,
         events: [
             ['change', ui_render_selected_card]
         ]
@@ -25,7 +25,58 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('default', () => [
     {
         id: 'default-title-color',
         property: 'card_options.default_title_color',
-        init: ui_fields_colorfield_init,
+        init: ui_field_type_color_init,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'default-icon-front',
+        property: 'card_options.default_icon_front',
+        init: ui_field_type_icon_init,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'default-icon-back',
+        property: 'card_options.default_icon_back',
+        init: ui_field_type_icon_init,
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'default-icon-back-container',
+        property: 'card_options.default_icon_back_container',
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'default-icon-back-rotation',
+        property: 'card_options.default_icon_back_rotation',
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'default-card-font-size',
+        property: 'card_options.default_card_font_size',
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'default-card-background',
+        property: 'card_options.default_background_image',
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'small-icons',
+        property: 'card_options.icon_inline',
         events: [
             ['change', ui_render_selected_card]
         ]

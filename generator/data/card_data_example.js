@@ -592,6 +592,8 @@ var card_data_example = [
     "title": "Loot Table",
     "contents": [
       "subtitle | Random loot",
+      "text |",
+      "text |",
       "table_start",
       "table_head | d6 | Item",
       "table_row | 1 | 10 gold pieces",
@@ -600,6 +602,13 @@ var card_data_example = [
       "table_row | 4 | 2d6 gold pieces",
       "table_row | 5 | A mysterious note",
       "table_row | 6 | Nothing",
+      "table_end",
+      "disabled | This is a disabled line and should not appear.",
+      "text |",
+      "text |",
+      "table_start | layout | bordfix",
+      "table_row | <b>d6</b> | 1 | 2 | 3 | 4 | 5 | 6",
+      "table_row | <b>Item</b> | 10 gold pieces | Potion of Healing | Dagger | 2d6 gold pieces | A mysterious note | Nothing",
       "table_end",
       "disabled | This is a disabled line and should not appear."
     ],

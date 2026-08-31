@@ -44,19 +44,23 @@
     <script type="text/javascript" src="lib/dompurify/purify.min.js" charset="utf-8"></script>
     <!-- Data -->
     <script type="text/javascript" src="data/card_data_example.js"></script>
-    <!-- Javascript -->
+    <!-- Fields -->
+    <script type="text/javascript" src="js/fields/field.js"></script>
+    <script type="text/javascript" src="js/fields/types/field_type_color.js"></script>
+    <script type="text/javascript" src="js/fields/types/field_type_icon.js"></script>
+    <script type="text/javascript" src="js/fields/types/field_type_search.js"></script>
+    <script type="text/javascript" src="js/fields/config/fields_file.js"></script>
+    <script type="text/javascript" src="js/fields/config/fields_deck.js"></script>
+    <script type="text/javascript" src="js/fields/config/fields_page.js"></script>
+    <script type="text/javascript" src="js/fields/config/fields_default.js"></script>
+    <script type="text/javascript" src="js/fields/config/fields_card.js"></script>
+    <!-- JS Core -->
     <script type="text/javascript" src="js/index-and-output.js"></script>
     <script type="text/javascript" src="js/common.js"></script>
-    <script type="text/javascript" src="js/fields/field.js"></script>
-    <script type="text/javascript" src="js/fields/fields_utils.js"></script>
-    <script type="text/javascript" src="js/fields/fields_file.js"></script>
-    <script type="text/javascript" src="js/fields/fields_deck.js"></script>
-    <script type="text/javascript" src="js/fields/fields_page.js"></script>
-    <script type="text/javascript" src="js/fields/fields_default.js"></script>
-    <script type="text/javascript" src="js/fields/fields_card.js"></script>
     <script type="text/javascript" src="js/cards.js"></script>
     <script type="text/javascript" src="js/colors.js"></script>
     <script type="text/javascript" src="js/icons.js"></script>
+    <script type="text/javascript" src="js/icons_preload.js"></script>
     <script type="text/javascript" src="js/doc_parser.js"></script>
     <script type="text/javascript" defer src="js/ui.js"></script>
     <!-- Fonts -->
@@ -238,7 +242,7 @@
                                             <div class="input-group">
                                                 <input type="search" id="deck-cards-list-title-filter" class="form-control" placeholder="Search">
                                                 <span class="input-group-btn">
-                                                    <button class="btn btn-default search-clear-btn">
+                                                    <button type="button" class="btn btn-default search-clear-btn">&times;</button>
                                                 </span>
                                             </div>
                                             <div id="deck-cards-list" class="deck-cards-list"></div>
@@ -394,7 +398,7 @@
                                         <div class="col-sm-8">
                                             <select class="form-control" id="card-arrangement"
                                                 data-option="card_arrangement">
-                                                <option value="doublesided" selected>Double sided printing - flip on long edge -</option>
+                                                <option value="doublesided" selected>Double sided</option>
                                                 <option value="front_only">Front side only</option>
                                                 <option value="side_by_side">Side by side</option>
                                                 <option value="side_by_side_alt">Side by side, alternating</option>
@@ -457,7 +461,7 @@
                                                     <div class="checkbox" style="padding-bottom: 7px;">
                                                         <label>
                                                             <input type="checkbox" checked id="page-zoom-keep-ratio"
-                                                                data-option="page_zoom_keep_ratio" value="1"> Keep aspect ratio
+                                                                value="1"> Keep aspect ratio
                                                         </label>
                                                     </div>
                                                     <div style="padding-top: 7px; padding-left: 15px;">
@@ -696,6 +700,7 @@
                                         <label for="default-icon-back-container" class="col-sm-4 control-label" style="font-weight: normal;">Container</label>
                                         <div class="col-sm-6">
                                             <select class="form-control" id="default-icon-back-container">
+                                                <option value=""></option>
                                                 <option value="none">None</option>
                                                 <option value="square">Square</option>
                                                 <option value="rounded-square">Rounded square</option>
@@ -807,7 +812,7 @@
                             <div class="input-group">
                                 <input type="search" id="card-title-display" class="form-control" data-placeholder="Title">
                                 <span class="input-group-btn">
-                                    <button class="btn btn-default search-clear-btn">
+                                    <button type="button" class="btn btn-default search-clear-btn">&times;</button>
                                 </span>
                             </div>
                         </div>
@@ -828,11 +833,11 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="title-color" class="col-sm-2 control-label" style="font-weight: normal;">Title color</label>
+                        <label for="card-title-color" class="col-sm-2 control-label" style="font-weight: normal;">Title color</label>
                         <div class="col-sm-10">
                             <div class="input-group">
-                                <select id="title-color-selector" class="colorselector-data"></select>
-                                <input type="text" id="title-color" class="form-control" placeholder="Default title color">
+                                <select id="card-title-color-selector" class="colorselector-data"></select>
+                                <input type="text" id="card-title-color" class="form-control" placeholder="Default title color">
                             </div>
                         </div>
                     </div>
@@ -896,6 +901,7 @@
                          <label for="card-icon-back-container" class="col-sm-2 control-label" style="font-weight: normal;">Container</label>
                          <div class="col-sm-10">
                             <select class="form-control" id="card-icon-back-container" data-property="icon_back_container">
+                                <option value=""></option>
                                 <option value="none">None</option>
                                 <option value="square">Square</option>
                                 <option value="rounded-square">Rounded square</option>
