@@ -120,46 +120,62 @@ function ui_clear_all(enableAsking) {
     return proceed;
 }
 
-function ui_load_files(evt) {
+async function ui_load_files(evt) {
     const target = evt.target;
-    const files = target.files;
+    const files = Array.from(target.files || []);
     const isOpening = Boolean(evt.target.getAttribute('data-opening'));
     const clearAll = Boolean(evt.target.getAttribute('data-clear-all'));
     const firstAddedCardIndex = card_data.length;
 
-    for (let i = 0; i < files.length; i++) {
-        let f = files[i];
+    // Reset file input
+    $("#file-load-form")[0].reset();
+
+    const readFile = file => new Promise(resolve => {
         const reader = new FileReader();
 
         reader.onload = function () {
             const result = (this.result || '').trim();
             if (!result) {
-                showToast(`The file ${f.name} is empty.`);
+                showToast(`The file ${file.name} is empty.`);
+                resolve(null);
                 return;
             }
+
             try {
-                const data = JSON.parse(result);
-                const newData = legacy_card_data(data);
-                if (isOpening && clearAll) {
-                    ui_clear_all(false);
-                }
-                ui_add_cards(newData);
-                if (isOpening) {
-                    getField('file-name').changeValue(f.name.replace(/\.[^/.]+$/, ''));
-                } else {
-                    ui_select_card_by_index(firstAddedCardIndex);
-                }
+                resolve({ file, cards: legacy_card_data(JSON.parse(result)) });
             } catch (err) {
-                console.error(`Error parsing ${f.name}:`, err);
-                showToast(`Error parsing ${f.name}:`, 'danger');
+                console.error(`Error parsing ${file.name}:`, err);
+                showToast(`Error parsing ${file.name}:`, 'danger');
+                resolve(null);
             }
         };
 
-        reader.readAsText(f);
+        reader.onerror = function () {
+            console.error(`Error reading ${file.name}:`, this.error);
+            showToast(`Error reading ${file.name}:`, 'danger');
+            resolve(null);
+        };
+
+        reader.readAsText(file);
+    });
+
+    // Promise.all preserves the user's file-selection order even when the
+    // individual FileReader operations finish in a different order.
+    const loadedFiles = (await Promise.all(files.map(readFile))).filter(Boolean);
+    if (!loadedFiles.length) return;
+
+    if (isOpening && clearAll) {
+        ui_clear_all(false);
     }
 
-    // Reset file input
-    $("#file-load-form")[0].reset();
+    ui_add_cards(loadedFiles.flatMap(({ cards }) => cards));
+
+    if (isOpening) {
+        const firstFileName = loadedFiles[0].file.name.replace(/\.[^/.]+$/, '');
+        getField('file-name').changeValue(firstFileName);
+    } else {
+        ui_select_card_by_index(firstAddedCardIndex);
+    }
 }
 
 function ui_init_cards(data) {
