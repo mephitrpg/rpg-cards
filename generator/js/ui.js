@@ -1104,7 +1104,9 @@ $(document).ready(function () {
 
     $('#clear-all').on('click', () => {
         if (confirm('Delete all saved data?\n\nThis will reset the entire app to its original state and erase all saved cards and settings.\n\nMake sure you’ve downloaded your cards before continuing.')) {
-            localStorage.clear();
+            localStorage.removeItem('card_data');
+            localStorage.removeItem('card_options');
+            localStorage.removeItem('app_settings');
             window.location.reload();
         }
     });
