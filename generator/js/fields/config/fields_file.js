@@ -23,7 +23,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('file', () => [
         valueGetter: Boolean,
         events: [
             ['change', () => {
-                if (!app_settings.save_file_dialog) getField('browser-asks-where-save').update(false);
+                if (!app_settings.open_save_dialog) getField('browser-asks-where-save').update(false);
             }]
         ]
     }
