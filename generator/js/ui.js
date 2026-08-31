@@ -90,7 +90,11 @@ function ui_generate() {
     // Send the generated HTML to the new window
     // Use a delay to give the new window time to set up a message listener
     setTimeout(function () {
-        tab.postMessage({ style, html, pages, options: outputOptions }, '*');
+        // A literal "null" is not a valid targetOrigin for postMessage. The
+        // fallback only applies when the app is opened directly from disk; the
+        // receiver still verifies that this window is its opener.
+        const targetOrigin = window.location.origin === 'null' ? '*' : window.location.origin;
+        tab.postMessage({ style, html, pages, options: outputOptions }, targetOrigin);
     }, 500);
 }
 
@@ -307,9 +311,22 @@ function ui_update_card_list() {
 
     while (i--) {
         var card = card_data[i];
-        $option = $deck.find(`[data-uuid="${card.uuid}"]`);
+        const cardUuid = String(card.uuid);
+        const $option = $deck.children().filter(function () {
+            return this.getAttribute('data-uuid') === cardUuid;
+        });
         if (!$option.length) {
-            $deck.prepend(`<div class="radio" data-uuid="${card.uuid}"><label><input type="radio" name="deck-option" value="${i}"> <span class="text">${ui_deck_option_text(card)}</span></label></div>`);
+            const $input = $('<input>', {
+                type: 'radio',
+                name: 'deck-option',
+                value: i
+            });
+            const $text = $('<span>', { class: 'text' }).text(ui_deck_option_text(card));
+            const $label = $('<label>').append($input, document.createTextNode(' '), $text);
+            const $newOption = $('<div>', { class: 'radio' })
+                .attr('data-uuid', cardUuid)
+                .append($label);
+            $deck.prepend($newOption);
         } else if ($option.index() === i) {
             $option.find('.text').text(ui_deck_option_text(card));
         } else {
@@ -1017,13 +1034,20 @@ function local_store_load() {
 }
 
 function showToast(message, type = 'info', duration = 5000) {
-  // Create toast element with animation class
-  var toastDiv = $('<div class="alert alert-' + type + ' alert-dismissible toast-animate" role="alert" style="min-width: 250px; margin-top: 10px;">' +
-                     '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                       '<span aria-hidden="true">&times;</span>' +
-                     '</button>' +
-                     message +
-                   '</div>');
+  const allowedTypes = new Set(['success', 'info', 'warning', 'danger']);
+  const toastType = allowedTypes.has(type) ? type : 'info';
+  const closeButton = $('<button>', {
+      type: 'button',
+      class: 'close',
+      'data-dismiss': 'alert',
+      'aria-label': 'Close'
+  }).append($('<span>', { 'aria-hidden': 'true' }).text('\u00d7'));
+  const toastDiv = $('<div>', {
+      class: `alert alert-${toastType} alert-dismissible toast-animate`,
+      role: 'alert'
+  }).css({ minWidth: '250px', marginTop: '10px' });
+
+  toastDiv.append(closeButton, document.createTextNode(String(message)));
 
     $('#toast-container').append(toastDiv);
 

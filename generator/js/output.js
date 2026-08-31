@@ -1,8 +1,22 @@
 var showCloseButton = true;
 
 function receiveMessage(event) {
+    if (event.source !== window.opener || event.origin !== window.location.origin) {
+        return;
+    }
+
+    if (!event.data || typeof event.data !== 'object') {
+        return;
+    }
+
     const { style, html, pages, options } = event.data;
-    if (typeof html === 'string') {
+    if (
+        typeof style === 'string' &&
+        typeof html === 'string' &&
+        Array.isArray(pages) &&
+        options &&
+        typeof options === 'object'
+    ) {
         showCloseButton = false;
         insertCards(style, html);
         if (options.crop_marks) cropMarks(pages, options);
@@ -21,11 +35,19 @@ function insertCards(style, html) {
             document.body.removeChild(document.body.lastChild);
         }
     
+        // The generated style is transported as a <style> string. Extract its
+        // text and assign it through textContent so it can never become markup.
+        const styleMatch = style.match(/^\s*<style>([\s\S]*)<\/style>\s*$/i);
+        if (!styleMatch) return;
+        const styleElement = document.createElement('style');
+        styleElement.textContent = styleMatch[1];
+
         // Create a div that holds all the received HTML
         var div = document.createElement("div");
         div.setAttribute("class", "output-container");
         div.id = "output-container";
-        div.innerHTML = style + DOMPurify.sanitize(html, { ADD_TAGS: [ 'page'] });
+        div.innerHTML = DOMPurify.sanitize(html, { ADD_TAGS: [ 'page'] });
+        div.prepend(styleElement);
     
         // Add the new div to the document
         document.body.appendChild(div);
