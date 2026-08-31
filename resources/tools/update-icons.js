@@ -147,8 +147,11 @@ function cleanDirectory(src) {
 
 function removeFile(filePath) {
     console.log("  Removing file...");
-    return new Promise((resolve, _) => {
-        fse.remove(filePath, () => resolve());
+    return new Promise(resolve => {
+        fse.remove(filePath, err => {
+            if (err) console.warn("Icons: could not remove temporary file", err);
+            resolve();
+        });
     }); 
 }
 
@@ -191,6 +194,11 @@ fse.emptyDir(tempDir)
     .then(() => copyAll(customIconDir, iconDir))
     .then(() => generateCSS(iconDir, cssPath))
     .then(() => generateJS(iconDir, jsPath))
-    .then(() => cleanDirectory(tempDir))
+    .then(() => cleanDirectory(tempDir).catch(err => {
+        console.warn("Icons: could not clean temporary directory", err);
+    }))
     .then(() => console.log("Icons: done"))
-    .catch(err => console.log("Icons: error", err));
+    .catch(err => {
+        console.error("Icons: error", err);
+        process.exitCode = 1;
+    });

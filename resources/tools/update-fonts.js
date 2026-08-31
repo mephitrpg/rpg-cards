@@ -89,15 +89,21 @@ function cleanDirectory(src) {
 
 function moveFile(src, dst) {
     console.log("  Moving file...");
-    return new Promise((resolve, _) => {
-        fse.move(src, dst, () => resolve());
+    return new Promise((resolve, reject) => {
+        fse.move(src, dst, err => {
+            if (err) reject(err);
+            else resolve();
+        });
     }); 
 }
 
 function removeFile(filePath) {
     console.log("  Removing file...");
-    return new Promise((resolve, _) => {
-        fse.remove(filePath, () => resolve());
+    return new Promise(resolve => {
+        fse.remove(filePath, err => {
+            if (err) console.warn("Fonts: could not remove temporary file", err);
+            resolve();
+        });
     }); 
 }
 
@@ -177,6 +183,11 @@ fse.emptyDir(tempDir)
     .then(() => moveFile(tempDir+"/"+ttfFileName, destDir+"/"+ttfFileName))
     .then(() => moveFile(tempDir+"/"+woffFileName, destDir+"/"+woffFileName))
     .then(() => fixCss())
-    .then(() => cleanDirectory(tempDir))
+    .then(() => cleanDirectory(tempDir).catch(err => {
+        console.warn("Fonts: could not clean temporary directory", err);
+    }))
     .then(() => console.log("Fonts: done"))
-    .catch(err => console.log("Fonts: error", err));
+    .catch(err => {
+        console.error("Fonts: error", err);
+        process.exitCode = 1;
+    });
