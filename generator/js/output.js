@@ -70,7 +70,7 @@ function mapIndex_rowReverse(i, colCount) {
     return row * colCount + (colCount - 1 - col);
 }
 
-function mapIndex_column(i, rowCount) {
+function mapIndex_column(i, rowCount, totalItems) {
     const row = i % rowCount;
     const col = Math.floor(i / rowCount);
 
