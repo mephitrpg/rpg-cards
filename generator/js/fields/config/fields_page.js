@@ -127,6 +127,13 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('page', () => [
     {
         id: 'card-width',
         property: 'card_options.card_width',
+        init: () => {
+            ui_set_orientation_info(
+                'card-orientation',
+                card_options.card_width,
+                card_options.card_height
+            );
+        },
         events: [
             ['input', function() {
                 const value = this.value;
@@ -183,7 +190,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('page', () => [
         id: 'card-zoom-height',
         property: 'card_options.card_zoom_height',
         events: [
-            ['input', ui_render_selected_card]
+            ['input', ui_zoom_update_correlates]
         ]
     },
     {
