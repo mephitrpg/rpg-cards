@@ -355,7 +355,9 @@ function ui_update_card_list() {
     ui_update_selected_card();
 }
 
-async function ui_save_file() {
+async function ui_save_file(options = {}) {
+    const forceSaveDialog = options.forceSaveDialog === true;
+    const updateFileName = options.updateFileName !== false;
     const data = card_data.map(item => {
         const card = { ...item };
         delete card.uuid;
@@ -365,8 +367,8 @@ async function ui_save_file() {
     let filename = app_settings.file_name;
     
     if (window.showSaveFilePicker) {
-        if (app_settings.open_save_dialog) {
-            if (!app_settings.browser_asks_where_save) {
+        if (forceSaveDialog || app_settings.open_save_dialog) {
+            if (forceSaveDialog || !app_settings.browser_asks_where_save) {
                 try {
                     const options = {
                         suggestedName: filename + '.json',
@@ -381,7 +383,7 @@ async function ui_save_file() {
                     await writable.write(jsonString);
                     await writable.close();
                     const newFilename = handle.name.split('.').slice(0, -1).join('.');
-                    if (newFilename !== filename) getField('file-name').changeValue(newFilename);
+                    if (updateFileName && newFilename !== filename) getField('file-name').changeValue(newFilename);
                     return;
                 } catch (err) {
                     if (err.name === 'AbortError') {
@@ -1205,6 +1207,9 @@ $(document).ready(function () {
     $("#button-clear").click(function () { ui_clear_all(true); });
     $("#button-load-sample").click(ui_load_sample);
     $("#button-save").click(ui_save_file);
+    $("#button-save-as-a-copy").click(function () {
+        ui_save_file({ forceSaveDialog: true, updateFileName: false });
+    });
     $("#button-sort").click(ui_sort);
     $("#button-filter").click(ui_filter);
     $("#button-add-card").click(ui_add_new_card);
