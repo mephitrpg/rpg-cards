@@ -8,6 +8,16 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('default', () => [
         ]
     },
     {
+        id: 'default-back-type',
+        property: 'card_options.default_back_type',
+        events: [
+            ['change', function () {
+                ui_update_back_type_controls(this.value);
+                ui_render_selected_card();
+            }]
+        ]
+    },
+    {
         id: 'default-color-back',
         property: 'card_options.default_color_back',
         init: ui_field_type_color_init,
@@ -70,6 +80,13 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('default', () => [
     {
         id: 'default-card-background',
         property: 'card_options.default_background_image',
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
+        id: 'default-card-background-size',
+        property: 'card_options.default_background_size',
         events: [
             ['change', ui_render_selected_card]
         ]

@@ -7,6 +7,8 @@ function default_card_options() {
     background_color: "white",
     default_color_front: "black",
     default_color_back: "",
+    default_back_type: "classic",
+    default_background_size: "cover",
     default_icon_front: "",
     default_icon_back: "",
     default_icon_back_container: "rounded-square",
@@ -47,12 +49,16 @@ function default_card_data() {
 }
 
 function card_init(card) {
-  return {
+  const initialized = {
     ...card,
     title: card.title || "",
     contents: card.contents || [],
     tags: card.tags || []
+  };
+  if (card.back && typeof card.back === "object") {
+    initialized.back = card_init(card.back);
   }
+  return initialized;
 }
 
 function card_has_tag(card, tag) {
@@ -110,6 +116,45 @@ function card_data_icon_back_rotation(card_data, options) {
 
 function card_data_back_image(card_data, options) {
   return card_data.background_image || options.default_background_image || "";
+}
+
+function card_data_background_size(card_data, options) {
+  const size = card_data.background_size || options?.default_background_size || "cover";
+  // Store a semantic value in the deck while emitting the CSS value required
+  // to stretch the background image. Accept the former raw CSS value too, so
+  // existing decks continue to render exactly as before.
+  if (size === "stretch" || size === "100% 100%") {
+    return "100% 100%";
+  }
+  if (size !== "half") {
+    return size;
+  }
+
+  const parseLength = value => String(css_length(value)).trim().match(
+    /^([+-]?(?:\d+\.?\d*|\.\d+))([a-z%]+)$/i
+  );
+  const width = parseLength(options?.card_width);
+  const height = parseLength(options?.card_height);
+  if (width && height && width[2] === height[2]) {
+    // Percentages refer to the corresponding axis. For a portrait card the
+    // width is shorter; for a landscape card the height is shorter.
+    return Number(width[1]) > Number(height[1]) ? "auto 50%" : "50% auto";
+  }
+
+  // Keep the image proportional for custom, non-comparable dimensions.
+  return "50% auto";
+}
+
+function card_data_back_type(card_data, options) {
+  if (["classic", "front", "image", "empty"].includes(card_data.back_type)) {
+    return card_data.back_type;
+  }
+  // Compatibility with decks saved by the first full-back implementation.
+  if (card_data.back_as_front) return "front";
+  if (options && ["classic", "front", "image", "empty"].includes(options.default_back_type)) {
+    return options.default_back_type;
+  }
+  return "classic";
 }
 
 function card_data_split_params(value) {
@@ -1216,6 +1261,20 @@ function card_generate_back_html({
 
 
 function card_generate_back(data, options, { isPreview }) {
+  const backType = card_data_back_type(data, options);
+  if (backType === "front") {
+    const backData = data.back && typeof data.back === "object"
+      ? data.back
+      : default_card_data();
+    return card_generate_front(backData, options, { isPreview });
+  }
+  if (backType === "empty") {
+    return card_generate_empty_face(options, { isPreview, isBack: true });
+  }
+  if (backType === "image") {
+    return card_generate_image_back(data, options, { isPreview });
+  }
+
   var color = card_data_color_back(data, options);
   var style_color = card_generate_color_back_style(color, data, options);
 
@@ -1241,9 +1300,10 @@ function card_generate_back(data, options, { isPreview }) {
   $tmpCardContainer.remove();
 
   var url = card_data_back_image(data, options);
+  var backgroundSize = card_data_background_size(data, options);
   var card_background_style = "";
   if (url) {
-    card_background_style = `style="background-image: url(&quot;${url}&quot;); background-size: contain; background-position: center; background-repeat: no-repeat;"`;
+    card_background_style = `style="background-image: url(&quot;${url}&quot;); background-size: ${backgroundSize}; background-position: center; background-repeat: no-repeat;"`;
   } else {
     card_background_style = card_generate_color_gradient_style(color, options);
   }
@@ -1272,6 +1332,47 @@ function card_generate_back(data, options, { isPreview }) {
     icon_style,
     crop_marks: card_generate_crop_marks(data, options, { isPreview })
   });
+}
+
+function card_generate_image_back(data, options, { isPreview }) {
+  const width = options.card_width;
+  const height = options.card_height;
+  const bleedWidth = css_length(options.back_bleed_width);
+  const bleedHeight = css_length(options.back_bleed_height);
+  const cardWidth = isPreview ? width : `calc(${width} + ${bleedWidth})`;
+  const cardHeight = isPreview ? height : `calc(${height} + ${bleedHeight})`;
+  const classes = ["card", "card-image-back"];
+  if (options.rounded_corners) classes.push("rounded-corners");
+
+  let style = add_size_to_style('style=""', cardWidth, cardHeight);
+  const url = card_data_back_image(data, options);
+  const color = card_data_color_back(data, options);
+  style = add_to_style(style, { "background-color": color });
+  if (url) {
+    style = add_to_style(style, {
+      "background-image": `url(&quot;${url}&quot;)`,
+      "background-size": card_data_background_size(data, options),
+      "background-position": "center",
+      "background-repeat": "no-repeat"
+    });
+  }
+
+  return `<div class="${classes.join(" ")}" ${style}>
+    <div>${card_generate_crop_marks(data, options, { isPreview })}</div>
+  </div>`;
+}
+
+function card_generate_empty_face(options, { isPreview = false, isBack = false } = {}) {
+  const width = options.card_width;
+  const height = options.card_height;
+  const bleedWidth = css_length(options.back_bleed_width);
+  const bleedHeight = css_length(options.back_bleed_height);
+  const cardWidth = isPreview ? width : `calc(${width} + ${bleedWidth})`;
+  const cardHeight = isPreview ? height : `calc(${height} + ${bleedHeight})`;
+  const classes = ["card", "empty", isBack ? "back" : "front"];
+  if (options.rounded_corners) classes.push("rounded-corners");
+  const style = add_size_to_style(card_generate_color_back_style("white"), cardWidth, cardHeight);
+  return `<div class="${classes.join(" ")}" ${style}>${card_generate_crop_marks({}, options, { isPreview })}</div>`;
 }
 
 function card_generate_empty(count, options, is_back) {
@@ -1416,7 +1517,7 @@ function card_pages_generate_style(options) {
   var result = `
   @page {
       margin: 0;
-      size:${options.page_width} ${options.page_height};
+      size: ${options.page_width} ${options.page_height};
       print-color-adjust: exact;
   }
   `;

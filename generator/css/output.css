@@ -34,7 +34,6 @@ body {
     padding: 0;
     border: 0;
     box-shadow: none;
-    /* Set the background to gray to visualize the page size in the print preview */
-    background-color: gray;
+    background-color: white;
   }
 }

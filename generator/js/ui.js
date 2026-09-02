@@ -1,5 +1,56 @@
 // Ugly global variable holding the current card deck
 var card_data = [];
+var ui_selected_face = 'front';
+
+function ui_selected_card_face() {
+    return ui_selected_card();
+}
+
+function ui_selected_card_content_back() {
+    const card = ui_selected_card();
+    return card?.back && typeof card.back === 'object' ? card.back : null;
+}
+
+function ui_select_face(face) {
+    const card = ui_selected_card();
+    ui_selected_face = face === 'back' ? 'back' : 'front';
+    document.querySelectorAll('[data-card-face]').forEach(button => {
+        const active = button.getAttribute('data-card-face') === ui_selected_face;
+        button.closest('li')?.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+    });
+    if (!card) {
+        // With no selected card, changing tabs is only a UI operation. Calling
+        // ui_update_selected_card() here would reset every card Field,
+        // including the controls displayed above the tabs.
+        ui_update_back_type_controls();
+        return;
+    }
+    ui_update_selected_card();
+}
+
+function ui_update_back_type_controls(backTypeOverride) {
+    const card = ui_selected_card();
+    const backType = backTypeOverride || card_data_back_type(card || {}, card_options);
+    const isBackTab = ui_selected_face === 'back';
+    $('#card-face-selector').show();
+    document.querySelectorAll('[data-card-face-view]').forEach(view => {
+        const visible = view.getAttribute('data-card-face-view') === ui_selected_face;
+        $(view).toggle(visible);
+        view.setAttribute('aria-hidden', String(!visible));
+    });
+    document.querySelectorAll('[data-back-type-view]').forEach(view => {
+        const visible = isBackTab && view.getAttribute('data-back-type-view') === backType;
+        $(view).toggle(visible);
+        view.setAttribute('aria-hidden', String(!visible));
+    });
+    document.querySelectorAll('[data-card-face]').forEach(button => {
+        const active = button.getAttribute('data-card-face') === ui_selected_face;
+        button.closest('li')?.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+    });
+}
+
 var card_options = default_card_options();
 var app_settings = default_app_settings();
 
@@ -225,7 +276,7 @@ function ui_add_new_card() {
 function ui_duplicate_card() {
     var old_card = ui_selected_card();
     if (old_card && card_data.length > 0) {
-        var new_card = $.extend({}, old_card);
+        var new_card = $.extend(true, {}, old_card);
         card_data.push(new_card);
         new_card.title = new_card.title + " (Copy)";
         new_card.uuid = ui_generate_uuid();
@@ -410,15 +461,28 @@ async function ui_save_file(options = {}) {
 
 function ui_update_selected_card() {
     var card = ui_selected_card();
+    ui_update_back_type_controls();
     if (card) {
         // Use Field class for ALL card fields (contents/tags now have valueGetter/valueSetter)
         // Update the inputs without firing events to avoid opening typeahead dropdowns.
         getFieldGroup('card').forEach(field => {
-            field.update(field.getData());
+            let value = field.getData();
+            if (field.id === 'card-back-type') {
+                value = card_data_back_type(card, card_options);
+            } else if (field.id === 'card-background-size') {
+                value = field.getFallbackData();
+            }
+            field.setValue(value);
         });
+        const displayTitle = document.getElementById('card-title-display');
+        if (displayTitle) displayTitle.placeholder = card.title || displayTitle.getAttribute('data-placeholder');
     } else {
         getFieldGroup('card').forEach(field => {
-            field.reset();
+            if (field.id === 'card-back-type') {
+                field.setValue(card_data_back_type({}, card_options));
+            } else {
+                field.reset();
+            }
         });
     }
 
@@ -887,7 +951,7 @@ function ui_apply_card_default(identifier) {
     card_data.forEach(card => { card[k] = v; });
     local_store_save();
     if (ui_selected_card()) {
-        field.reset();
+        field.changeValue(v);
         ui_update_selected_card();
     }
 }
@@ -1253,6 +1317,10 @@ $(document).ready(function () {
         swapInputValues('card-zoom-width', 'card-zoom-height');
     });
     $("#button-generate").click(ui_generate);
+    $("#card-face-selector").on('click', '[data-card-face]', function (event) {
+        event.preventDefault();
+        ui_select_face(this.getAttribute('data-card-face'));
+    });
     
 
     // init default tab fields
@@ -1261,11 +1329,13 @@ $(document).ready(function () {
     $("#button-apply-default-card-font-size").click(() => ui_apply_card_default('card-font-size'));
     $("#button-apply-default-color-front").click(() => ui_apply_card_default('card-color-front'));
     $("#button-apply-default-icon-front").click(() => ui_apply_card_default('card-icon-front'));
+    $("#button-apply-default-back-type").click(() => ui_apply_card_default('card-back-type'));
     $("#button-apply-default-color-back").click(() => ui_apply_card_default('card-color-back'));
     $("#button-apply-default-icon-back").click(() => ui_apply_card_default('card-icon-back'));
     $("#button-apply-default-icon-back-rotation").click(() => ui_apply_card_default('card-icon-back-rotation'));
     $("#button-apply-default-icon-back-container").click(() => ui_apply_card_default('card-icon-back-container'));
     $("#button-apply-default-card-background").click(() => ui_apply_card_default('card-background'));
+    $("#button-apply-default-card-background-size").click(() => ui_apply_card_default('card-background-size'));
 
     $("#deck-cards-list").on('change', 'input[type=radio]', ui_update_selected_card);
     $("#deck-cards-list-title-filter").on('input change', ui_filter_selected_card_title);
