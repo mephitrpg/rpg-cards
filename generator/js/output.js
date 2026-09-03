@@ -18,13 +18,13 @@ function receiveMessage(event) {
         typeof options === 'object'
     ) {
         showCloseButton = false;
-        insertCards(style, html);
-        if (options.crop_marks) cropMarks(pages, options);
-        process_card_generated_front();
+        insertCards(style, html, () => {
+            if (options.crop_marks) cropMarks(pages, options);
+        });
     }
 }
 
-function insertCards(style, html) {
+function insertCards(style, html, onInserted) {
     // Remove all previous content
     (function waitForBody() {
         if (!document.body){
@@ -51,6 +51,8 @@ function insertCards(style, html) {
     
         // Add the new div to the document
         document.body.appendChild(div);
+        process_card_generated_front(div);
+        onInserted?.();
     })();
 }
 

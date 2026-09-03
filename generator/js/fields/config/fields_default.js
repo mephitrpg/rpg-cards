@@ -78,6 +78,15 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('default', () => [
         ]
     },
     {
+        id: 'default-auto-fit-font-size',
+        property: 'card_options.default_auto_fit_font_size',
+        valueGetter: value => typeof value === 'boolean' ? (value ? 'Yes' : 'No') : value === 'Yes',
+        valueSetter: value => value === 'Yes',
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
+    {
         id: 'default-card-background',
         property: 'card_options.default_background_image',
         events: [

@@ -15,6 +15,7 @@ function default_card_options() {
     default_title_size: "13",
     default_title_color: "white",
     default_card_font_size: "inherit",
+    default_auto_fit_font_size: false,
     vertical_alignment_reference: "",
     page_size: "210mm,297mm",
     page_width: "210mm",
@@ -1083,7 +1084,10 @@ function card_generate_contents(card_data, options) {
     });
   });
 
-  result += `<div class="card-content-container">${html}</div>`;
+  const autoFitClass = card_data.auto_fit_font_size ?? options.default_auto_fit_font_size
+    ? " auto-fit-font-size"
+    : "";
+  result += `<div class="card-content-container${autoFitClass}">${html}</div>`;
   return result;
 }
 

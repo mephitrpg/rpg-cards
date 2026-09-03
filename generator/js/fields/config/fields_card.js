@@ -188,6 +188,17 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
             ['change', ui_render_selected_card]
         ]
     },
+    {
+        id: 'card-auto-fit-font-size',
+        property: [ui_selected_card_face, 'auto_fit_font_size'],
+        defaultProperty: 'card_options.default_auto_fit_font_size',
+        initWithDefaultValue: false,
+        valueGetter: value => typeof value === 'boolean' ? (value ? 'Yes' : 'No') : value == null ? '' : value,
+        valueSetter: value => value === '' ? null : value === 'Yes',
+        events: [
+            ['change', ui_render_selected_card]
+        ]
+    },
     // Card icons
     {
         id: 'card-icon-front',
@@ -362,6 +373,13 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
     {
         id: 'card-content-back-font-size', property: [ui_selected_card_content_back, 'card_font_size'],
         defaultProperty: 'card_options.default_card_font_size', initWithDefaultValue: false,
+        events: [['change', ui_render_selected_card]]
+    },
+    {
+        id: 'card-content-back-auto-fit-font-size', property: [ui_selected_card_content_back, 'auto_fit_font_size'],
+        defaultProperty: 'card_options.default_auto_fit_font_size', initWithDefaultValue: false,
+        valueGetter: value => typeof value === 'boolean' ? (value ? 'Yes' : 'No') : value == null ? '' : value,
+        valueSetter: value => value === '' ? null : value === 'Yes',
         events: [['change', ui_render_selected_card]]
     },
     {
