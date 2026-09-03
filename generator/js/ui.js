@@ -467,11 +467,6 @@ function ui_update_selected_card() {
         // Update the inputs without firing events to avoid opening typeahead dropdowns.
         getFieldGroup('card').forEach(field => {
             let value = field.getData();
-            if (field.id === 'card-back-type') {
-                value = card_data_back_type(card, card_options);
-            } else if (field.id === 'card-background-size') {
-                value = field.getFallbackData();
-            }
             field.setValue(value);
         });
         const displayTitle = document.getElementById('card-title-display');
@@ -1095,14 +1090,14 @@ function local_store_load() {
     if(window.localStorage){
         try {
             const storedCards = JSON.parse(localStorage.getItem("card_data"));
+            const storedOptions = JSON.parse(localStorage.getItem("card_options"));
+            const storedSettings = JSON.parse(localStorage.getItem("app_settings"));
             if (storedCards) {
                 card_data = legacy_card_data(storedCards)
             }
-            const storedOptions = JSON.parse(localStorage.getItem("card_options"));
             if (storedOptions) {
                 card_options = legacy_card_options(storedOptions);
             }
-            const storedSettings = JSON.parse(localStorage.getItem("app_settings"));
             if (storedSettings) {
                 app_settings = legacy_app_settings(storedSettings);
             }

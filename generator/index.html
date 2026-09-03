@@ -829,6 +829,7 @@
                         <label for="card-back-type" class="col-sm-2 control-label">Back type</label>
                         <div class="col-sm-10">
                             <select class="form-control" id="card-back-type">
+                                <option value="">Default</option>
                                 <option value="classic">Classic</option>
                                 <option value="image">Image</option>
                                 <option value="front">Content</option>
@@ -955,7 +956,7 @@
                             <label for="card-icon-back-container" class="col-sm-2 control-label" style="font-weight: normal;">Container</label>
                             <div class="col-sm-10">
                                 <select class="form-control" id="card-icon-back-container" data-property="icon_back_container">
-                                    <option value=""></option>
+                                    <option value="">Default</option>
                                     <option value="none">None</option>
                                     <option value="square">Square</option>
                                     <option value="rounded-square">Rounded square</option>
@@ -974,6 +975,7 @@
                             <label for="card-background-size" class="col-sm-2 control-label" style="font-weight: normal;">Background size</label>
                             <div class="col-sm-10">
                                 <select class="form-control" id="card-background-size">
+                                    <option value="">Default</option>
                                     <option value="cover">Cover</option>
                                     <option value="contain">Contain</option>
                                     <option value="stretch">Stretch</option>
@@ -998,6 +1000,7 @@
                         <label for="card-font-size" class="col-sm-2 control-label" style="font-weight: normal;">Text size</label>
                         <div class="col-sm-10">
                             <select class="form-control" id="card-font-size" data-property="card_font_size">
+                                <option value="">Default</option>
                                 <option value="12">12px (initial)</option>
                                 <option value="11">11px</option>
                                 <option value="inherit">10.66px (inherit: 8pt)</option>
@@ -1027,7 +1030,7 @@
                     <div data-card-face-view="back" data-back-type-view="image">
                         <div class="form-group"><label for="card-image-back-color" class="col-sm-2 control-label">Back color</label><div class="col-sm-10"><div class="input-group"><select id="card-image-back-color-selector" class="colorselector-data"></select><input type="text" id="card-image-back-color" class="form-control" placeholder="Default back color"></div></div></div>
                         <div class="form-group"><label for="card-image-back-background" class="col-sm-2 control-label">Back image</label><div class="col-sm-10"><input type="text" id="card-image-back-background" class="form-control" placeholder="Background image URL"></div></div>
-                        <div class="form-group"><label for="card-image-back-background-size" class="col-sm-2 control-label">Background size</label><div class="col-sm-10"><select class="form-control" id="card-image-back-background-size"><option value="cover">Cover</option><option value="contain">Contain</option><option value="stretch">Stretch</option><option value="half">Half</option></select></div></div>
+                        <div class="form-group"><label for="card-image-back-background-size" class="col-sm-2 control-label">Background size</label><div class="col-sm-10"><select class="form-control" id="card-image-back-background-size"><option value="">Default</option><option value="cover">Cover</option><option value="contain">Contain</option><option value="stretch">Stretch</option><option value="half">Half</option></select></div></div>
                     </div>
                     <div data-card-face-view="back" data-back-type-view="front">
                         <div class="form-group"><label for="card-content-back-color" class="col-sm-2 control-label">Front color</label><div class="col-sm-10"><div class="input-group"><select id="card-content-back-color-selector" class="colorselector-data"></select><input type="text" id="card-content-back-color" class="form-control" placeholder="Default front color"></div></div></div>
@@ -1039,7 +1042,7 @@
                         <div class="form-group"><label for="card-content-back-icons" class="col-sm-2 control-label">Icons</label><div class="col-sm-10"><div class="input-group"><span class="input-group-btn"><button class="btn btn-default icon-select-button" type="button">Search</button></span><input type="text" id="card-content-back-icons" class="form-control icon-list" placeholder="Card icons, space separated"></div></div></div>
                         <div class="form-group"><label for="card-content-back-icons-color" class="col-sm-2 control-label">Icons color</label><div class="col-sm-10"><div class="input-group"><select id="card-content-back-icons-color-selector" class="colorselector-data"></select><input type="text" id="card-content-back-icons-color" class="form-control" placeholder="Default title color"></div></div></div>
                         <div class="form-group"><label for="card-content-back-contents" class="col-sm-2 control-label">Contents</label><div class="col-sm-10"><textarea class="form-control" rows="14" id="card-content-back-contents"></textarea></div></div>
-                        <div class="form-group"><label for="card-content-back-font-size" class="col-sm-2 control-label">Text size</label><div class="col-sm-10"><select class="form-control" id="card-content-back-font-size"><option value="12">12px</option><option value="11">11px</option><option value="inherit">10.66px</option><option value="10">10px</option><option value="9">9px</option><option value="smaller">8.88px</option><option value="8">8px</option></select></div></div>
+                        <div class="form-group"><label for="card-content-back-font-size" class="col-sm-2 control-label">Text size</label><div class="col-sm-10"><select class="form-control" id="card-content-back-font-size"><option value="">Default</option><option value="12">12px</option><option value="11">11px</option><option value="inherit">10.66px</option><option value="10">10px</option><option value="9">9px</option><option value="smaller">8.88px</option><option value="8">8px</option></select></div></div>
                         <div class="form-group"><label for="card-content-back-alignment" class="col-sm-2 control-label">Relative to</label><div class="col-sm-10"><select class="form-control" id="card-content-back-alignment"><option value="">Full Card</option><option value="content-area">Content Area</option></select></div></div>
                     </div>
                     <div data-card-face-view="back" data-back-type-view="empty"></div>
