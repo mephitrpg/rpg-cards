@@ -260,6 +260,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
         },
         valueSetter: (value) => typeof value === 'string' ? value.split("\n") : value,
         events: [
+            [ 'input', ui_render_selected_card],
             ['change', ui_render_selected_card]
         ]
     },
@@ -353,7 +354,10 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('card', () => [
         defaultProperty: 'card_options.contents', initWithDefaultValue: false,
         valueGetter: value => value == null ? '' : (Array.isArray(value) ? value.join('\n') : value),
         valueSetter: value => typeof value === 'string' ? value.split('\n') : value,
-        events: [['change', ui_render_selected_card]]
+        events: [
+            ['input', ui_render_selected_card],
+            ['change', ui_render_selected_card]
+        ]
     },
     {
         id: 'card-content-back-font-size', property: [ui_selected_card_content_back, 'card_font_size'],
