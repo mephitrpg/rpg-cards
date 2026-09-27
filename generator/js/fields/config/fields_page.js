@@ -64,6 +64,10 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('page', () => [
         property: 'card_options.crop_marks'
     },
     {
+        id: 'card-spacing',
+        property: 'card_options.card_spacing'
+    },
+    {
         id: 'page-columns',
         property: 'card_options.page_columns',
         events: [
