@@ -64,8 +64,9 @@ function card_init(card) {
 
 function card_has_tag(card, tag) {
   tag = tag.trim().toLowerCase();
-  var index = card.tags.indexOf(tag);
-  return index > -1;
+  return card.tags.some(function (card_tag) {
+    return card_tag.trim().toLowerCase() === tag;
+  });
 }
 
 function card_add_tag(card, tag) {
