@@ -13,6 +13,12 @@ Documentation
 
 Click [here](https://mephitrpg.github.io/rpg-cards/documentation.html) to read the documentation.
 
+Forum
+=====
+
+Click [here](https://github.com/mephitrpg/rpg-cards/discussions) for project updates or to start a discussion.
+
+
 Installation and Updating
 =========================
 
@@ -22,7 +28,6 @@ The build will update /generator/icons folder with content from:
 - The [game-icons](http://game-icons.net) project.
 - Fonts from the [gameicons-font](https://seiyria.com/gameicons-font) project.
 - And any .png or .svg files you have added to ./resources/custom-icons (you must build the project and refresh the page in the browser in order to use them).
-
 
 To setup or update this project:
 
@@ -44,13 +49,11 @@ To deply the generator into a website:
 
 - Deploy the content of the `./generator` folder to your server (i.e. using an FTP client)
 
-
 Support
 =======
 
 [Robert](https://github.com/crobi), the original author, is no longer maintaining the project. It is now maintained by [jure](https://github.com/mephitrpg) in his spare time, so updates may be infrequent.
 Replies to questions, requests, and bug reports may also take some time.
-
 
 Cloud integration
 =================
@@ -58,7 +61,6 @@ Cloud integration
 The hosted generator can support Dropbox without using a shared Dropbox app. Each
 user can create and configure their own Dropbox app, then connect it from the
 generator. This keeps each user's Dropbox authorization separate.
-
 
 FAQ
 =====================
@@ -70,7 +72,6 @@ FAQ
   - Enable printing backround images in your browser print dialog
 - The layout of the cards is broken (e.g., cards are placed outside the page), what's wrong?
   - Check your page size, card size, and cards/page settings. If you ask the generator to place 4x4 poker-sized cards on a A4 paper, they won't fit and they will overflow the page.
-
 
 License
 =======
