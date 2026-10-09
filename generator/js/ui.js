@@ -1112,6 +1112,10 @@ function file_storage_provider_update() {
     const provider = $('#file-storage-provider').val();
     $('#file-computer-actions').toggleClass('hidden', provider !== 'computer');
     $('#file-dropbox-actions').toggleClass('hidden', provider !== 'dropbox');
+    const saveAs = provider === 'dropbox'
+        ? app_settings.dropbox_open_save_dialog
+        : app_settings.open_save_dialog;
+    $(`#button${provider === 'dropbox' ? '-dropbox' : ''}-save`).text(saveAs ? 'Save as' : 'Save');
 }
 function dropbox_controls() {
     const connected = dropbox_is_connected();

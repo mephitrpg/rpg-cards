@@ -26,6 +26,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('file', () => [
         property: 'app_settings.open_save_dialog',
         valueGetter: Boolean,
         events: [
+            ['change', file_storage_provider_update],
             ['change', () => {
                 if (!app_settings.open_save_dialog) getField('browser-asks-where-save').update(false);
             }]
@@ -34,6 +35,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('file', () => [
     {
         name: 'dropbox-open-save-dialog',
         property: 'app_settings.dropbox_open_save_dialog',
-        valueGetter: Boolean
+        valueGetter: Boolean,
+        events: [['change', file_storage_provider_update]]
     }
 ]);
