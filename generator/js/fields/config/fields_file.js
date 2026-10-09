@@ -18,6 +18,7 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('file', () => [
         events: [
             ['change', () => {
                 if (app_settings.browser_asks_where_save) getField('open-save-dialog').update(true);
+                file_storage_provider_update();
             }]
         ]
     },
