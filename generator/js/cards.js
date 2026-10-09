@@ -36,7 +36,8 @@ function default_card_options() {
     back_bleed_width: "2mm",
     back_bleed_height: "2mm",
     card_type: "",
-    crop_marks: true
+    crop_marks: true,
+    card_spacing: "0mm"
   };
 }
 
@@ -1495,16 +1496,18 @@ function card_pages_wrap(pages, options) {
 
     var zw = options.page_zoom_width / 100;
     var zh = options.page_zoom_height / 100;
+    var cardSpacing = css_length(options.card_spacing || "0mm");
     var zoomStyle = 'style="';
     zoomStyle += `transform: scale(${zw}, ${zh});`;
+    zoomStyle += `gap: ${cardSpacing};`;
     if (options.card_arrangement === "doublesided" && i % 2 === 1) {
       zoomStyle += "flex-direction:" + "row-reverse" + ";";
     }
     zoomStyle += '"';
     zoomStyle = add_size_to_style(
       zoomStyle,
-      `calc((${options.card_width} + ${css_length(options.back_bleed_width)}) * ${options.page_columns})`,
-      `calc((${options.card_height} + ${css_length(options.back_bleed_height)}) * ${options.page_rows})`
+      `calc((${options.card_width} + ${css_length(options.back_bleed_width)}) * ${options.page_columns} + ${cardSpacing} * ${options.page_columns - 1})`,
+      `calc((${options.card_height} + ${css_length(options.back_bleed_height)}) * ${options.page_rows} + ${cardSpacing} * ${options.page_rows - 1})`
     );
 
     result +=
