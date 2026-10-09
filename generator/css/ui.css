@@ -302,3 +302,7 @@ label.lock-addon:has(input:checked)::before {
 .card-fields-groups-separator {
     border-top-color: #aaaaaa;
 }
+
+.hr-contrast {
+    border-top-color: #b5b5b5;
+}

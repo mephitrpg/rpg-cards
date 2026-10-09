@@ -52,6 +52,15 @@ I (the original author) am not maintaining the project anymore, and will not be 
 However, I have given write access to a few collaborators that are maintaining the project.
 Please reach out to me if you want to be included as collaborator, or if you want to take ownership of this project.
 
+
+Cloud integration
+=================
+
+The hosted generator can support Dropbox without using a shared Dropbox app. Each
+user can create and configure their own Dropbox app, then connect it from the
+generator. This keeps each user's Dropbox authorization separate.
+
+
 FAQ
 =====================
 

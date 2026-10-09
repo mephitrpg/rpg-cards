@@ -59,8 +59,12 @@ function default_app_settings() {
         file_name: 'rpg_cards',
         browser_asks_where_save: false,
         open_save_dialog: false,
+        dropbox_open_save_dialog: false,
+        dropbox_folder_path: '',
         show_download_settings: true,
-        page_zoom_keep_ratio: true
+        page_zoom_keep_ratio: true,
+        file_storage_provider: 'computer',
+        dropbox_app_key: ''
     }
 }
 
@@ -409,12 +413,7 @@ function ui_update_card_list() {
 async function ui_save_file(options = {}) {
     const forceSaveDialog = options.forceSaveDialog === true;
     const updateFileName = options.updateFileName !== false;
-    const data = card_data.map(item => {
-        const card = { ...item };
-        delete card.uuid;
-        return card;
-    });
-    const jsonString = JSON.stringify(data, null, "  ");
+    const jsonString = ui_deck_export_json();
     let filename = app_settings.file_name;
     
     if (window.showSaveFilePicker) {
@@ -457,6 +456,33 @@ async function ui_save_file(options = {}) {
         a.click();
     }
     setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+}
+
+// Cards normally contain only JSON values, but a browser event or DOM object
+// must never make an exported deck unsaveable.  Ignore those transient UI
+// values (and any circular reference) while retaining all deck data that can
+// be represented in a JSON file.
+function ui_deck_export_json() {
+    const seen = new WeakSet();
+    const data = card_data.map(item => {
+        const card = { ...item };
+        delete card.uuid;
+        return card;
+    });
+
+    return JSON.stringify(data, function (key, value) {
+        if (typeof value === 'function' || value === window ||
+            (typeof Node !== 'undefined' && value instanceof Node) ||
+            (typeof Event !== 'undefined' && value instanceof Event)) {
+            return undefined;
+        }
+
+        if (value && typeof value === 'object') {
+            if (seen.has(value)) return undefined;
+            seen.add(value);
+        }
+        return value;
+    }, 2);
 }
 
 function ui_update_selected_card() {
@@ -1066,6 +1092,223 @@ function legacy_card_data(oldData = []) {
     return newData;
 }
 
+function dropbox_redirect_uri() {
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.hash = '';
+    if (url.pathname.endsWith('/index.html')) url.pathname = url.pathname.slice(0, -'index.html'.length);
+    if (!url.pathname.endsWith('/')) url.pathname += '/';
+    return url.toString();
+}
+const DROPBOX_TOKEN_KEY = 'rpg_cards_dropbox_token';
+
+function dropbox_token() { try { return JSON.parse(localStorage.getItem(DROPBOX_TOKEN_KEY)); } catch (_) { return null; } }
+function dropbox_is_connected() {
+    const appKey = $('#dropbox-app-key').val().trim();
+    return !!appKey && appKey === app_settings.dropbox_app_key && !!dropbox_token()?.access_token;
+}
+function dropbox_status(message, type = 'info') { const el = document.getElementById('dropbox-status'); if (el) { el.textContent = message; el.className = `help-block text-${type === 'danger' ? 'danger' : type}`; } }
+function file_storage_provider_update() {
+    const provider = $('#file-storage-provider').val();
+    $('#file-computer-actions').toggleClass('hidden', provider !== 'computer');
+    $('#file-dropbox-actions').toggleClass('hidden', provider !== 'dropbox');
+}
+function dropbox_controls() {
+    const connected = dropbox_is_connected();
+    const provider = $('#file-storage-provider');
+
+    $('#button-dropbox-add,#button-dropbox-save,#button-dropbox-save-as-a-copy,#button-dropbox-open').prop('disabled', !connected);
+    $('#button-dropbox-disconnect').prop('disabled', !connected);
+    provider.find('option[value="dropbox"]').prop('disabled', !connected).toggle(connected);
+    $('#dropbox-actions-unavailable').toggleClass('hidden', connected);
+
+    const selectedProvider = connected ? 'dropbox' : 'computer';
+    if (provider.val() !== selectedProvider) {
+        provider.val(selectedProvider);
+        app_settings.file_storage_provider = selectedProvider;
+        local_store_save();
+    }
+    file_storage_provider_update();
+    if (connected) dropbox_status('Dropbox connected.', 'success');
+}
+function dropbox_random(length = 64) { const bytes = new Uint8Array(length); crypto.getRandomValues(bytes); return Array.from(bytes, b => ('0' + (b % 36).toString(36)).slice(-1)).join(''); }
+async function dropbox_challenge(verifier) { const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)); return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+async function dropbox_connect() {
+    const appKey = $('#dropbox-app-key').val().trim();
+    if (!appKey) { dropbox_status('Enter your Dropbox App key first.', 'danger'); return; }
+    app_settings.dropbox_app_key = appKey; local_store_save();
+    const verifier = dropbox_random(); const challenge = await dropbox_challenge(verifier); const state = dropbox_random(32);
+    localStorage.setItem('rpg_cards_dropbox_verifier', verifier); localStorage.setItem('rpg_cards_dropbox_state', state);
+    const params = new URLSearchParams({ client_id: appKey, response_type: 'code', redirect_uri: dropbox_redirect_uri(), state, code_challenge: challenge, code_challenge_method: 'S256', token_access_type: 'offline', force_reapprove: 'true' });
+    window.location.href = `https://www.dropbox.com/oauth2/authorize?${params}`;
+}
+async function dropbox_finish_auth() {
+    const query = new URLSearchParams(window.location.search); const code = query.get('code'); if (!code) return;
+    if (query.get('state') !== localStorage.getItem('rpg_cards_dropbox_state')) throw new Error('Dropbox sign-in failed: invalid OAuth state.');
+    const response = await fetch('https://api.dropboxapi.com/oauth2/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ code, grant_type: 'authorization_code', client_id: app_settings.dropbox_app_key, redirect_uri: dropbox_redirect_uri(), code_verifier: localStorage.getItem('rpg_cards_dropbox_verifier') }) });
+    if (!response.ok) throw new Error('Dropbox token exchange failed. Check the App key and redirect URI.');
+    localStorage.setItem(DROPBOX_TOKEN_KEY, JSON.stringify(await response.json())); history.replaceState({}, document.title, window.location.pathname); dropbox_controls();
+}
+async function dropbox_api(endpoint, args, upload = false) {
+    const token = dropbox_token(); if (!dropbox_is_connected()) throw new Error('Dropbox is not connected.');
+    const apiArguments = args.meta || args;
+    const response = await fetch(`https://${upload ? 'content' : 'api'}.dropboxapi.com/2/${endpoint}`, { method: 'POST', headers: { Authorization: `Bearer ${token.access_token}`, ...(upload ? { 'Content-Type': 'application/octet-stream', 'Dropbox-API-Arg': JSON.stringify(apiArguments) } : { 'Content-Type': 'application/json' }) }, body: upload ? args.contents : JSON.stringify(args) });
+    if (!response.ok) throw new Error((await response.text()).slice(0, 300)); return response;
+}
+async function dropbox_save(copy = false, options = {}) {
+    if (app_settings.dropbox_open_save_dialog && !options.skipDialog) {
+        return dropbox_save_dialog(copy);
+    }
+
+    try {
+        const fileName = options.fileName || `${app_settings.file_name || 'rpg_cards'}${copy ? ' copy' : ''}`;
+        const folder = options.folder ?? app_settings.dropbox_folder_path;
+        const path = `${folder}/${fileName}.json`.replace(/^([^/])/, '/$1').replace(/\/+/g, '/');
+        const response = await dropbox_api('files/upload', {
+            meta: { path, mode: copy ? 'add' : 'overwrite', autorename: copy, mute: true },
+            contents: ui_deck_export_json()
+        }, true);
+        const savedPath = (await response.json()).path_display || path;
+        if (!copy && options.fileName && options.fileName !== app_settings.file_name) {
+            getField('file-name').changeValue(options.fileName);
+        }
+        app_settings.dropbox_folder_path = folder;
+        local_store_save();
+        const message = `${copy ? 'Saved a copy as' : 'Saved'} ${savedPath} to Dropbox.`;
+        dropbox_status(message, 'success');
+        showToast(message, 'success');
+    } catch (e) {
+        console.error(e);
+        const message = `Dropbox save failed: ${e.message}`;
+        dropbox_status(message, 'danger');
+        showToast(message, 'danger');
+    }
+}
+function dropbox_browser_save() {
+    const fileName = $('#dropbox-browser-save-file-name').val().trim().replace(/\.json$/i, '');
+    if (!fileName || fileName.includes('/')) {
+        showToast('Enter a file name without slashes.', 'danger');
+        return;
+    }
+    $('#dropbox-browser-modal').modal('hide');
+    dropbox_save(dropbox_browser_save_copy, { skipDialog: true, fileName, folder: dropbox_browser_path });
+}
+let dropbox_browser_path = '';
+let dropbox_browser_add = false;
+let dropbox_browser_mode = 'open';
+let dropbox_browser_save_copy = false;
+function dropbox_browser_set_path(path) {
+    dropbox_browser_path = path || '';
+}
+async function dropbox_open(add = false) {
+    if (!add && card_data.length && !confirm('This will replace the current deck.\nContinue?')) return;
+    dropbox_browser_add = add;
+    dropbox_browser_mode = 'open';
+    dropbox_browser_set_path(app_settings.dropbox_folder_path);
+    $('#dropbox-browser-title').text(add ? 'Add from Dropbox' : 'Open from Dropbox');
+    $('#dropbox-browser-save-fields').addClass('hidden');
+    $('#dropbox-browser-modal').modal('show');
+    await dropbox_browser_load();
+}
+async function dropbox_save_dialog(copy) {
+    dropbox_browser_mode = 'save';
+    dropbox_browser_save_copy = copy;
+    dropbox_browser_set_path(app_settings.dropbox_folder_path);
+    $('#dropbox-browser-title').text(copy ? 'Save a copy to Dropbox' : 'Save to Dropbox');
+    $('#dropbox-browser-save-file-name').val(`${app_settings.file_name || 'rpg_cards'}${copy ? ' copy' : ''}`);
+    $('#dropbox-browser-save-fields').removeClass('hidden');
+    $('#dropbox-browser-modal').modal('show');
+    await dropbox_browser_load();
+}
+async function dropbox_browser_load() {
+    const list = $('#dropbox-browser-list'); const status = $('#dropbox-browser-status');
+    list.empty(); status.text('Loading…'); $('#dropbox-browser-path').text(dropbox_browser_path || '/');
+    try {
+        const listing = await (await dropbox_api('files/list_folder', { path: dropbox_browser_path, recursive: false })).json();
+        if (dropbox_browser_path) list.append($('<button type="button" class="list-group-item">').text('⬆ ..').on('click', () => { const parts = dropbox_browser_path.split('/').filter(Boolean); parts.pop(); dropbox_browser_set_path(parts.length ? '/' + parts.join('/') : ''); dropbox_browser_load(); }));
+        listing.entries.sort((a, b) => (a['.tag'] === b['.tag'] ? a.name.localeCompare(b.name) : a['.tag'] === 'folder' ? -1 : 1)).forEach(entry => {
+            const isFolder = entry['.tag'] === 'folder';
+            if (!isFolder && !entry.name.toLowerCase().endsWith('.json')) return;
+            const item = $('<div class="list-group-item clearfix">');
+            const openButton = $('<button type="button" class="btn btn-link">').text((isFolder ? '📁 ' : '📄 ') + entry.name);
+            openButton.on('click', () => isFolder ? (dropbox_browser_set_path(entry.path_lower), dropbox_browser_load()) : dropbox_browser_file_select(entry));
+            const actions = $('<div class="btn-group btn-group-sm pull-right" role="group">');
+            actions.append($('<button type="button" class="btn btn-default">').text('Rename').on('click', () => dropbox_browser_rename(entry)));
+            actions.append($('<button type="button" class="btn btn-danger">').text('Delete').on('click', () => dropbox_browser_delete(entry)));
+            item.append(openButton, actions);
+            list.append(item);
+        });
+        status.text(list.children().length ? '' : 'This folder contains no JSON decks or folders.');
+    } catch (e) { console.error(e); dropbox_browser_status(`Could not load this Dropbox folder: ${e.message}`, 'danger'); }
+}
+function dropbox_browser_file_select(entry) {
+    if (dropbox_browser_mode === 'save') {
+        $('#dropbox-browser-save-file-name').val(entry.name.replace(/\.json$/i, ''));
+        return;
+    }
+    dropbox_browser_download(entry);
+}
+function dropbox_browser_child_path(name) {
+    return `${dropbox_browser_path || ''}/${name}`;
+}
+function dropbox_browser_status(message, type = 'info') {
+    $('#dropbox-browser-status').text(message);
+    showToast(message, type);
+}
+async function dropbox_browser_new_folder() {
+    const name = prompt('Name for the new folder:');
+    if (name === null) return;
+    const folderName = name.trim();
+    if (!folderName || folderName.includes('/')) { dropbox_browser_status('Enter a folder name without slashes.', 'danger'); return; }
+    try {
+        await dropbox_api('files/create_folder_v2', { path: dropbox_browser_child_path(folderName), autorename: false });
+        await dropbox_browser_load();
+        dropbox_browser_status(`Created folder ${folderName}.`, 'success');
+    } catch (e) { console.error(e); dropbox_browser_status(`Could not create folder: ${e.message}`, 'danger'); }
+}
+async function dropbox_browser_rename(entry) {
+    const name = prompt('New name:', entry.name);
+    if (name === null) return;
+    const newName = name.trim();
+    if (!newName || newName.includes('/')) { dropbox_browser_status('Enter a name without slashes.', 'danger'); return; }
+    if (newName === entry.name) return;
+    try {
+        await dropbox_api('files/move_v2', { from_path: entry.path_lower, to_path: dropbox_browser_child_path(newName), autorename: false, allow_ownership_transfer: false });
+        await dropbox_browser_load();
+        dropbox_browser_status(`Renamed ${entry.name} to ${newName}.`, 'success');
+    } catch (e) { console.error(e); dropbox_browser_status(`Could not rename ${entry.name}: ${e.message}`, 'danger'); }
+}
+async function dropbox_browser_delete(entry) {
+    if (!confirm(`Delete ${entry.name}?`)) return;
+    try {
+        await dropbox_api('files/delete_v2', { path: entry.path_lower });
+        await dropbox_browser_load();
+        dropbox_browser_status(`Deleted ${entry.name}.`, 'success');
+    } catch (e) { console.error(e); dropbox_browser_status(`Could not delete ${entry.name}: ${e.message}`, 'danger'); }
+}
+async function dropbox_browser_download(file) {
+    try {
+        const response = await dropbox_api('files/download', { path: file.path_lower }, true);
+        const cards = legacy_card_data(JSON.parse(await response.text()));
+        const firstAddedCardIndex = card_data.length;
+        if (dropbox_browser_add) {
+            card_data.push(...cards);
+        } else {
+            card_data = cards;
+            getField('file-name').changeValue(file.name.replace(/\.json$/i, ''));
+        }
+        ui_update_card_list();
+        $('#collapseDeck').collapse('show');
+        ui_select_card_by_index(dropbox_browser_add ? firstAddedCardIndex : 0);
+        app_settings.dropbox_folder_path = dropbox_browser_path;
+        local_store_save();
+        $('#dropbox-browser-modal').modal('hide');
+        const message = `${dropbox_browser_add ? 'Added' : 'Opened'} ${file.name}.`;
+        dropbox_status(message, 'success');
+        showToast(message, 'success');
+    } catch (e) { console.error(e); dropbox_browser_status(`Could not open ${file.name}: ${e.message}`, 'danger'); }
+}
+
 function legacy_card_options(data = {}) {
     const newData = {
         ...default_card_options(),
@@ -1080,10 +1323,16 @@ function legacy_card_options(data = {}) {
 }
 
 function legacy_app_settings(data = {}) {
-    return {
+    const settings = {
         ...default_app_settings(),
         ...data
     };
+    if (!settings.dropbox_folder_path) {
+        settings.dropbox_folder_path = data.dropbox_save_folder_path || data.dropbox_open_folder_path || '';
+    }
+    delete settings.dropbox_open_folder_path;
+    delete settings.dropbox_save_folder_path;
+    return settings;
 }
 
 function local_store_load() {
@@ -1146,18 +1395,6 @@ $(document).ready(function () {
     if (!window.showSaveFilePicker) {
         $('#download-settings-available,#download-settings-unavailable').toggleClass('hidden');
     }
-
-    if (app_settings.show_download_settings) {
-        $('#download-settings-opened').removeClass('hidden');
-    } else {
-        $('#download-settings-closed').removeClass('hidden');
-    }
-
-    $('#download-settings-show,#download-settings-hide').click(function(event) {
-        $('#download-settings-opened,#download-settings-closed').toggleClass('hidden');
-        app_settings.show_download_settings = event.target.id === 'download-settings-show';
-        local_store_save();
-    });
 
     $('#danger-zone-show,#danger-zone-hide').click(() => {
         $('#danger-zone-opened,#danger-zone-closed').toggleClass('hidden');
@@ -1253,7 +1490,7 @@ $(document).ready(function () {
     });
     $("#button-open").click(function () {
         if (card_data.length && document.getElementById('ask-before-delete').checked) {
-            if (!confirm('This will delete all cards.\nAre you sure?')) return;
+            if (!confirm('This will replace the current deck.\nContinue?')) return;
         }
         $("#file-load").attr({
             'data-opening': '1',
@@ -1265,10 +1502,23 @@ $(document).ready(function () {
     // init deck tab fields
     $("#button-clear").click(function () { ui_clear_all(true); });
     $("#button-load-sample").click(ui_load_sample);
-    $("#button-save").click(ui_save_file);
+    $("#button-save").click(() => ui_save_file());
     $("#button-save-as-a-copy").click(function () {
         ui_save_file({ forceSaveDialog: true, updateFileName: false });
     });
+    $('#dropbox-app-key').val(app_settings.dropbox_app_key || '');
+    $('#dropbox-app-key').on('input', dropbox_controls);
+    $('#button-dropbox-connect').click(dropbox_connect);
+    $('#button-dropbox-save').click(() => dropbox_save());
+    $('#button-dropbox-save-as-a-copy').click(() => dropbox_save(true));
+    $('#button-dropbox-browser-save').click(dropbox_browser_save);
+    $('#button-dropbox-add').click(() => dropbox_open(true));
+    $('#button-dropbox-open').click(() => dropbox_open());
+    $('#button-dropbox-new-folder').click(dropbox_browser_new_folder);
+    $('#file-storage-provider').change(file_storage_provider_update);
+    $('#button-dropbox-disconnect').click(function () { localStorage.removeItem(DROPBOX_TOKEN_KEY); dropbox_controls(); dropbox_status('Dropbox disconnected.'); });
+    dropbox_finish_auth().catch(error => dropbox_status(error.message, 'danger'));
+    dropbox_controls();
     $("#button-sort").click(ui_sort);
     $("#button-filter").click(ui_filter);
     $("#button-add-card").click(ui_add_new_card);

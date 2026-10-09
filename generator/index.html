@@ -123,88 +123,65 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <div class="col-sm-6">
-                                            <button type="button" class="btn btn-primary btn-block" id="button-save-as-a-copy">Download a copy</button>
-                                            <a href="" id="file-save-link" style="display:none">Hidden download link</a>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <button type="button" class="btn btn-primary btn-block" id="button-save">Download</button>
-                                        </div>
-                                    </div>
-                                    <div id="download-settings-closed" class="hidden">
-                                        <div class="form-group">
-                                            <div class="col-sm-12">
-                                                <p><a href="javascript:;" id="download-settings-show">Show settings</a></p>
-                                            </div>
+                                        <label class="col-sm-4 control-label" for="file-storage-provider">Storage</label>
+                                        <div class="col-sm-8">
+                                            <select class="form-control" id="file-storage-provider">
+                                                <option value="computer">Computer</option>
+                                                <option value="dropbox" disabled>Dropbox</option>
+                                            </select>
                                         </div>
                                     </div>
-                                    <div id="download-settings-opened" class="hidden">
-                                        <p><a href="javascript:;" id="download-settings-hide">Hide settings</a></p>
-                                        <div id="download-settings-available">
-                                            <em class="help-block"><small>Please note that changing one of these settings may automatically adjust another.</small></em>
-                                            <div class="form-group">
-                                                <div class="col-sm-12">
-                                                    <p style="margin-bottom: 0px;">Would you like “Download” to ask where to save the file each time?</p>
-                                                    <label class="radio-inline" style="padding-bottom: 7px;">
-                                                        <input type="radio" name="open-save-dialog" value="">
-                                                        No
-                                                    </label>
-                                                    <label class="radio-inline" style="padding-bottom: 7px;">
-                                                        <input type="radio" name="open-save-dialog" value="1">
-                                                        Yes</span>
-                                                        <span id="save-file-custom-dialog-label" class="hidden">File name</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="alert alert-info" role="alert">
-                                                <div class="form-group" style="margin-bottom: 0;">
-                                                    <div style="display: flex;">
-                                                        <div style="padding: 0 15px;">
-                                                            <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                                                <div id="file-computer-actions">
+                                                    <div class="form-group">
+                                                        <div class="col-sm-6">
+                                                            <button type="button" class="btn btn-primary btn-block" style="white-space: normal; height: 100%;"
+                                                                id="button-load">Add</button>
                                                         </div>
-                                                        <div style="padding-right: 45px;">
-                                                            <p style="margin-bottom: 0px;">
-                                                                Is your browser set to ask where to save files before downloading?
-                                                            </p>
-                                                            <label class="radio-inline" style="padding-bottom: 7px;">
-                                                                <input type="radio" name="browser-asks-where-save" value="">
-                                                                No
-                                                            </label>
-                                                            <label class="radio-inline" style="padding-bottom: 7px;">
-                                                                <input type="radio" name="browser-asks-where-save" value="1">
-                                                                Yes
-                                                            </label>
-                                                            <em class="help-block" style="margin-bottom: 0;">
-                                                                Ensure this matches your browser download settings; otherwise, the save dialog may behave unexpectedly.
-                                                            </em>
+                                                        <div class="col-sm-6">
+                                                            <button type="button" class="btn btn-primary btn-block" style="white-space: normal; height: 100%;"
+                                                                id="button-open">Open</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group" style="display: flex; align-items: stretch;">
+                                                        <div class="col-sm-6">
+                                                            <button type="button" class="btn btn-primary btn-block" id="button-save-as-a-copy">Save a copy</button>
+                                                            <a href="" id="file-save-link" style="display:none">Hidden download link</a>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <button type="button" class="btn btn-primary btn-block" id="button-save">Save</button>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div id="download-settings-unavailable" class="help-block hidden">
-                                            <p>Download settings are not available. This may be because the browser lacks necessary features (window.showSaveFilePicker) or the page isn't being used in a <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts">secure context</a>.</p>
-                                            <p>In your browser's download settings, you can choose whether to be asked where to save each file and set a default download location.</p>
-                                        </div>
-                                    </div>
+                                                <div id="file-dropbox-actions" class="hidden">
+                                                    <div class="form-group" style="display: flex; align-items: stretch;">
+                                                        <div class="col-sm-6">
+                                                            <button type="button" class="btn btn-primary btn-block" style="white-space: normal; height: 100%;" id="button-dropbox-add" disabled>Add</button>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <button type="button" class="btn btn-primary btn-block" style="white-space: normal; height: 100%;" id="button-dropbox-open" disabled>Open</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group" style="display: flex; align-items: stretch;">
+                                                        <div class="col-sm-6">
+                                                            <button type="button" class="btn btn-primary btn-block" style="white-space: normal; height: 100%;" id="button-dropbox-save-as-a-copy" disabled>Save a copy</button>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <button type="button" class="btn btn-primary btn-block" style="white-space: normal; height: 100%;" id="button-dropbox-save" disabled>Save</button>
+                                                        </div>
+                                                    </div>
+                                                    <p id="dropbox-actions-unavailable" class="help-block">Connect Dropbox in the settings below to use these actions.</p>
+                                                </div>
                                     <div class="form-group" style="display: flex; align-items: stretch;">
                                         <div class="col-sm-6">
-                                            <button type="button" class="btn btn-info btn-block" style="white-space: normal; height: 100%;" id="button-help">Help</button>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <button type="button" class="btn btn-primary btn-block" style="white-space: normal; height: 100%;"
-                                                id="button-open">Open</button>
-                                        </div>
-                                    </div>
-                                    <div class="form-group" style="display: flex; align-items: stretch;">
-                                        <div class="col-sm-6">
-                                            <button type="button" class="btn btn-primary btn-block" style="white-space: normal; height: 100%;"
+                                            <button type="button" class="btn btn-info btn-block" style="white-space: normal; height: 100%;"
                                                 id="button-load-sample">Add sample</button>
                                         </div>
                                         <div class="col-sm-6">
-                                            <button type="button" class="btn btn-primary btn-block" style="white-space: normal; height: 100%;"
-                                                id="button-load">Add</button>
+                                            <button type="button" class="btn btn-info btn-block" style="white-space: normal; height: 100%;" id="button-help">Help</button>
                                         </div>
+                                    </div>
+                                    <div id="download-settings-closed">
+                                        <a href="#download-settings-modal" id="download-settings-show" data-toggle="modal">Show settings</a>
                                     </div>
                                 </form>
                                 <!-- /PANEL BODY -->
@@ -767,7 +744,7 @@
                                     <div class="help-block">
                                         <p>
                                             An attribute's default value will be applied to cards that are missing a value for that specific attribute. 
-                                            These default values are stored in the browser but not in the file saved using the "Download" button.
+                                            These default values are stored in the browser but not in the file saved using the "Save" button.
                                         </p>
                                         <p>
                                             Press the ">" button to overwrite existing attribute values on each card.
@@ -1076,6 +1053,79 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="download-settings-modal" tabindex="-1" role="dialog" aria-labelledby="download-settings-title">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="download-settings-title">File settings</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="download-settings-opened">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <ul class="nav nav-pills nav-stacked" role="tablist">
+                                    <li role="presentation" class="active"><a href="#download-settings-computer" aria-controls="download-settings-computer" role="tab" data-toggle="tab">Computer</a></li>
+                                    <li role="presentation"><a href="#download-settings-dropbox" aria-controls="download-settings-dropbox" role="tab" data-toggle="tab">Dropbox</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-sm-9">
+                                <div class="tab-content">
+                                    <div role="tabpanel" class="tab-pane active" id="download-settings-computer">
+                                        <div id="download-settings-available">
+                                            <em class="help-block"><small>Please note that changing one of these settings may automatically adjust another.</small></em>
+                                            <div class="form-group">
+                                                <p style="margin-bottom: 0px;">Would you like “Download” to ask where to save the file each time?</p>
+                                                <label class="radio-inline" style="padding-bottom: 7px;"><input type="radio" name="open-save-dialog" value="" checked> No</label>
+                                                <label class="radio-inline" style="padding-bottom: 7px;"><input type="radio" name="open-save-dialog" value="1"> Yes <span id="save-file-custom-dialog-label" class="hidden">File name</span></label>
+                                            </div>
+                                            <div class="alert alert-info" role="alert">
+                                                <div class="form-group" style="margin-bottom: 0;">
+                                                    <div style="display: flex;">
+                                                        <div style="padding: 0 15px;"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></div>
+                                                        <div style="padding-right: 45px;">
+                                                            <p style="margin-bottom: 0px;">Is your browser set to ask where to save files before downloading?</p>
+                                                            <label class="radio-inline" style="padding-bottom: 7px;"><input type="radio" name="browser-asks-where-save" value=""> No</label>
+                                                            <label class="radio-inline" style="padding-bottom: 7px;"><input type="radio" name="browser-asks-where-save" value="1"> Yes</label>
+                                                            <em class="help-block" style="margin-bottom: 0;">Ensure this matches your browser download settings; otherwise, the save dialog may behave unexpectedly.</em>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="download-settings-unavailable" class="help-block hidden">
+                                            <p>Download settings are not available. This may be because the browser lacks necessary features (window.showSaveFilePicker) or the page isn't being used in a <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts" target="_blank" rel="noopener">secure context</a>.</p>
+                                            <p>In your browser's download settings, you can choose whether to be asked where to save each file and set a default download location.</p>
+                                        </div>
+                                    </div>
+                                    <div role="tabpanel" class="tab-pane" id="download-settings-dropbox">
+                                        <p class="help-block">Use your own Dropbox app. <a href="dropbox.html" target="_blank" rel="noopener">Setup instructions</a></p>
+                                        <div class="form-group">
+                                            <label for="dropbox-app-key">Dropbox App key</label>
+                                            <input type="text" class="form-control" id="dropbox-app-key" autocomplete="off" placeholder="Paste your Dropbox App key">
+                                        </div>
+                                        <p class="help-block">Only the App key is needed; never enter a Dropbox App secret.</p>
+                                        <button type="button" class="btn btn-default" id="button-dropbox-connect">Connect Dropbox</button>
+                                        <button type="button" class="btn btn-link" id="button-dropbox-disconnect" disabled>Disconnect</button>
+                                        <p id="dropbox-status" class="help-block" aria-live="polite"></p>
+                                        <hr class="hr-contrast">
+                                        <div class="form-group">
+                                            <p style="margin-bottom: 0px;">Would you like “Download” to ask where to save the file each time?</p>
+                                            <label class="radio-inline" style="padding-bottom: 7px;"><input type="radio" name="dropbox-open-save-dialog" value="" checked> No</label>
+                                            <label class="radio-inline" style="padding-bottom: 7px;"><input type="radio" name="dropbox-open-save-dialog" value="1"> Yes</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Modal (Info)-->
     <div class="modal" id="help-modal" tabindex="-1" role="dialog">
         <div class="modal-dialog">
@@ -1201,6 +1251,32 @@ if (card_has_tag(card, "creature")) {
         </div>
     </div>
     <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
+    <div class="modal fade" id="dropbox-browser-modal" tabindex="-1" role="dialog" aria-labelledby="dropbox-browser-title">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="dropbox-browser-title">Open from Dropbox</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="clearfix">
+                        <p id="dropbox-browser-path" class="text-muted pull-left"></p>
+                        <button type="button" class="btn btn-default btn-sm pull-right" id="button-dropbox-new-folder">New folder</button>
+                    </div>
+                    <div id="dropbox-browser-save-fields" class="form-group hidden">
+                        <label for="dropbox-browser-save-file-name">File name</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="dropbox-browser-save-file-name" required>
+                            <span class="input-group-btn"><button type="button" class="btn btn-primary" id="button-dropbox-browser-save">Save here</button></span>
+                        </div>
+                        <p class="help-block">Select a folder above, or select an existing file to reuse its name.</p>
+                    </div>
+                    <div id="dropbox-browser-list" class="list-group"></div>
+                    <p id="dropbox-browser-status" class="help-block"></p>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

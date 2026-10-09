@@ -8,6 +8,10 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('file', () => [
         ]
     },
     {
+        id: 'file-storage-provider',
+        property: 'app_settings.file_storage_provider'
+    },
+    {
         name: 'browser-asks-where-save',
         property: 'app_settings.browser_asks_where_save',
         valueGetter: Boolean,
@@ -26,5 +30,10 @@ UI_FIELDS_CONFIGURATION_PREPARE.set('file', () => [
                 if (!app_settings.open_save_dialog) getField('browser-asks-where-save').update(false);
             }]
         ]
+    },
+    {
+        name: 'dropbox-open-save-dialog',
+        property: 'app_settings.dropbox_open_save_dialog',
+        valueGetter: Boolean
     }
 ]);

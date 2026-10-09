@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dropbox setup - RPG Cards</title>
+    <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Dropbox setup</h1>
+        <p>RPG Cards lets each user connect their own Dropbox app. No shared Dropbox app is required.</p>
+
+        <h2>1. Create your Dropbox app</h2>
+        <ol>
+            <li>Open <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">Dropbox App Console</a> and choose <strong>Create app</strong>.</li>
+            <li>Select <strong>Scoped access</strong>.</li>
+            <li>Select <strong>App folder</strong>.</li>
+            <li>Give the app a name and create it.</li>
+        </ol>
+        <p class="alert alert-info">The app name becomes the name of the folder created inside your Dropbox <strong>Apps</strong> folder (the folder may be translated differently in your Dropbox language). This is the folder where you should place JSON deck files so they are available in RPG Cards.</p>
+
+        <h2>2. Enable permissions</h2>
+        <p>In the app's <strong>Permissions</strong> tab, enable:</p>
+        <ul>
+            <li><code>files.metadata.read</code></li>
+            <li><code>files.content.read</code></li>
+            <li><code>files.content.write</code></li>
+        </ul>
+        <p>Click <strong>Submit</strong> or <strong>Save</strong> if Dropbox shows that button.</p>
+
+        <h2>3. Add the redirect URI</h2>
+        <p>In the app's <strong>Settings</strong> tab, under OAuth 2, add your app's exact URI:</p>
+        <p>Example 1</p>
+        <pre>https://mephitrpg.github.io/rpg-cards/</pre>
+        <p>Example 2 (for local development)</p>
+        <pre>http://localhost:8080/</pre>
+        <p>The final slash matters.</p>
+        <p>You can add multiple URIs if needed.</p>
+
+        <h2>4. Connect RPG Cards</h2>
+        <ol>
+            <li>Copy the app's <strong>App key</strong> from Dropbox.</li>
+            <li>Return to the RPG Cards File panel.</li>
+            <li>Paste the key into <strong>Dropbox App key</strong>.</li>
+            <li>Click <strong>Connect Dropbox</strong> and approve access.</li>
+        </ol>
+
+        <div class="alert alert-warning">
+            Only enter the App key. Never enter or publish your Dropbox App secret.
+        </div>
+
+        <h2>Troubleshooting</h2>
+        <ul>
+            <li><strong>Invalid redirect URI:</strong> check that the URI matches exactly, including HTTPS and the final slash.</li>
+            <li><strong>Access denied:</strong> verify both file-content permissions are enabled.</li>
+            <li><strong>No decks appear:</strong> Dropbox files are stored in your app's dedicated App folder.</li>
+        </ul>
+        <p><a href="index.html">Return to RPG Cards</a></p>
+    </div>
+</body>
+</html>
