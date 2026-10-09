@@ -48,9 +48,8 @@ To deply the generator into a website:
 Support
 =======
 
-I (the original author) am not maintaining the project anymore, and will not be responding to issues or reviewing PRs.
-However, I have given write access to a few collaborators that are maintaining the project.
-Please reach out to me if you want to be included as collaborator, or if you want to take ownership of this project.
+[Robert](https://github.com/crobi), the original author, is no longer maintaining the project. It is now maintained by [jure](https://github.com/mephitrpg) in his spare time, so updates may be infrequent.
+Replies to questions, requests, and bug reports may also take some time.
 
 
 Cloud integration
@@ -71,6 +70,7 @@ FAQ
   - Enable printing backround images in your browser print dialog
 - The layout of the cards is broken (e.g., cards are placed outside the page), what's wrong?
   - Check your page size, card size, and cards/page settings. If you ask the generator to place 4x4 poker-sized cards on a A4 paper, they won't fit and they will overflow the page.
+
 
 License
 =======
