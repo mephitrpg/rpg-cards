@@ -345,6 +345,25 @@ function ui_selected_card_index() {
     return $checkedInput.closest('.radio').index();
 }
 
+function ui_move_selected_card(position) {
+    const selectedIndex = ui_selected_card_index();
+    if (selectedIndex < 0 || selectedIndex >= card_data.length) return;
+
+    let targetIndex;
+    if (position === 'top') targetIndex = 0;
+    else if (position === 'up') targetIndex = Math.max(0, selectedIndex - 1);
+    else if (position === 'down') targetIndex = Math.min(card_data.length - 1, selectedIndex + 1);
+    else if (position === 'bottom') targetIndex = card_data.length - 1;
+    else return;
+
+    if (targetIndex === selectedIndex) return;
+
+    const [selectedCard] = card_data.splice(selectedIndex, 1);
+    card_data.splice(targetIndex, 0, selectedCard);
+    ui_update_card_list();
+    ui_select_card_by_index(targetIndex);
+}
+
 function ui_selected_card() {
     return card_data[ui_selected_card_index()];
 }
@@ -1388,6 +1407,15 @@ function showToast(message, type = 'info', duration = 5000) {
 }
 
 $(document).ready(function () {
+    $('#button-sort').click(ui_sort);
+    $('#button-filter').click(ui_filter);
+    $('#sort-execute').click(ui_sort_execute);
+    $('#filter-execute').click(ui_filter_execute);
+    $('#button-move-top').click(() => ui_move_selected_card('top'));
+    $('#button-move-up').click(() => ui_move_selected_card('up'));
+    $('#button-move-down').click(() => ui_move_selected_card('down'));
+    $('#button-move-bottom').click(() => ui_move_selected_card('bottom'));
+
     parse_card_actions().then(function () {
         local_store_load();
 
