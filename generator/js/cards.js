@@ -1183,8 +1183,15 @@ function css_length(value) {
 }
 
 function add_bleed_to_style(style, bleedWidth, bleedHeight) {
-  return add_to_style(style, {
-    padding: `calc(${bleedHeight}/2) calc(${bleedWidth}/2)`
+  // The outer .card includes the bleed. Keep .card-content at the configured
+  // trim size so its border (and the crop marks) define the cut line.
+  return add_to_style(style || 'style=""', {
+    position: 'absolute',
+    top: `calc(${bleedHeight}/2)`,
+    right: `calc(${bleedWidth}/2)`,
+    bottom: `calc(${bleedHeight}/2)`,
+    left: `calc(${bleedWidth}/2)`,
+    height: `calc(100% - ${bleedHeight})`
   });
 }
 
@@ -1202,7 +1209,9 @@ function card_generate_front(data, options, { isPreview }) {
   var card_width = "calc(" + width + " + " + back_bleed_width + ")";
   var card_height = "calc(" + height + " + " + back_bleed_height + ")";
 
-  var card_style = isPreview ? add_size_to_style(style_color, width, height) : add_size_to_style(style_color, card_width, card_height);
+  var card_style = isPreview
+    ? add_size_to_style(style_color, width, height)
+    : add_size_to_style(style_color, card_width, card_height);
   var card_content_style = isPreview
     ? ''
     : add_bleed_to_style('', back_bleed_width, back_bleed_height);
@@ -1293,7 +1302,9 @@ function card_generate_back(data, options, { isPreview }) {
   var card_width = "calc(" + width + " + " + back_bleed_width + ")";
   var card_height = "calc(" + height + " + " + back_bleed_height + ")";
 
-  var card_style = isPreview ? add_size_to_style(style_color, width, height) : add_size_to_style(style_color, card_width, card_height);
+  var card_style = isPreview
+    ? add_size_to_style(style_color, width, height)
+    : add_size_to_style(style_color, card_width, card_height);
 
   const $tmpCard = $(card_generate_back_html({ card_style }));
   const $tmpCardContainer = $('<div style="position:absolute;visibility:hidden;pointer-events:none;"></div>');
@@ -1319,11 +1330,9 @@ function card_generate_back(data, options, { isPreview }) {
   var icon_container_style = add_size_to_style(card_generate_back_icon_container_style(color, data, options), `${iconContainerSize}px`, `${iconContainerSize}px`);
   var icon_style = card_generate_back_icon_style(color, data, options);
 
-  var card_content_style = add_bleed_to_style(
-    '',
-    back_bleed_width,
-    back_bleed_height
-  );
+  var card_content_style = isPreview
+    ? ''
+    : add_bleed_to_style('', back_bleed_width, back_bleed_height);
 
   return card_generate_back_html({
     renderInner: !url,
